@@ -6,8 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ApplicationIcon>icon\icon.ico</ApplicationIcon>
-    <AssemblyVersion>1.3</AssemblyVersion>
-    <FileVersion>1.3</FileVersion>
+    <AssemblyVersion>1.5</AssemblyVersion>
+    <FileVersion>1.5</FileVersion>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <LangVersion>13</LangVersion>
     <IsPackable>false</IsPackable>
@@ -18,5 +18,9 @@
   <ItemGroup>
     <Resource Include="icon\icon.ico" />
     <Resource Include="icon\icon.png" />
+    <Resource Include="images\about.png" />
+    <Resource Include="images\exit.png" />
+    <None Remove="images\logo.png" />
+    <Resource Include="images\logo.png" />
   </ItemGroup>
 </Project>

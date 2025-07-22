@@ -12,17 +12,18 @@ Batch File Creator for Xbox 360 XBLA Games is a Windows application that provide
 
 ### Core Features
 - **Batch File Creation**: Automatically scans a root folder and creates individual `.bat` files for each XBLA game found.
-- **Simple Workflow**: A clean, single-window interface for selecting the Xenia executable and the games folder.
+- **Simple Workflow**: A clean, single-window interface with a menu and status bar for selecting the Xenia executable and the games folder.
 - **Automatic Game Discovery**: Intelligently searches within each game's directory for the specific XBLA executable file structure (typically inside a `000D0000` subdirectory).
 - **User-Friendly Interface**: Designed for simplicity and ease of use.
 
 ### Logging & Reporting
 - **Real-time Logging**: A detailed log window shows the progress of the operation, including which files are created, which folders are skipped, and any errors encountered.
+- **Status Bar**: Provides at-a-glance feedback on the application's current status.
 - **Silent Error Reporting**: Automatically reports unhandled exceptions and potential issues to the developer, helping to improve application stability without interrupting the user.
 
 ### Advanced Features
 - **Lightweight and Portable**: No installation required; just run the executable.
-- **Memory Management**: Proper resource disposal and cleanup.
+- **Robust Batch Files**: Generated batch files change to the Xenia directory before launch, preventing issues with logs and configuration files.
 
 ## Supported Formats
 
@@ -52,12 +53,6 @@ Batch File Creator for Xbox 360 XBLA Games is a Windows application that provide
 2.  **Select Games Folder**: Click "Browse" next to "Games Folder" and select the root folder that contains all your individual XBLA game folders.
 3.  **Create Batch Files**: Click the "Create Batch Files" button.
 4.  **Monitor Progress**: The application will scan the folders and create the `.bat` files. The log window will display the results. The generated batch files will appear in the same folder you selected as the "Games Folder", ready to be used.
-
-## About Launching XBLA Games with Xenia
-
-Xenia is an experimental open-source emulator for the Xbox 360. To launch a specific game directly, you would normally need to use the command prompt and provide the path to both the Xenia executable and the game file.
-
-This tool automates that process by creating simple batch (`.bat`) files that contain the necessary commands. This allows you to launch your favorite XBLA games with a simple double-click, making it much easier to integrate them into game launchers or your desktop.
 
 ## Troubleshooting
 

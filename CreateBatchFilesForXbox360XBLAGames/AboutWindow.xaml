@@ -1,0 +1,31 @@
+<Window x:Class="CreateBatchFilesForXbox360XBLAGames.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About Batch File Creator for Xbox 360 XBLA Games"
+        Width="450" Height="350"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="10" HorizontalAlignment="Center">
+            <Image Source="pack://application:,,,/icon/icon.png" Width="64" Height="64" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Margin="20,10,20,10">
+            <TextBlock FontWeight="Bold" FontSize="16" Text="Batch File Creator for Xbox 360 XBLA Games" TextAlignment="Center" TextWrapping="Wrap"/>
+            <TextBlock x:Name="AppVersionTextBlock" Margin="0,5,0,0" Text="Version: 1.3.0.0" TextAlignment="Center" />
+            <TextBlock x:Name="DescriptionTextBlock" TextWrapping="Wrap" Margin="0,15,0,0" Text="A simple utility to create batch files for launching your Xbox 360 XBLA games with the Xenia emulator." />
+            <TextBlock Margin="0,15,0,0">
+                <Hyperlink NavigateUri="https://www.purelogiccode.com" RequestNavigate="Hyperlink_RequestNavigate">https://www.purelogiccode.com</Hyperlink>
+            </TextBlock>
+            <TextBlock Margin="0,10,0,0" Text="© 2024 Pure Logic Code. All rights reserved." />
+        </StackPanel>
+
+        <Button Grid.Row="2" Content="Close" Width="100" Margin="10" HorizontalAlignment="Center" Click="CloseButton_Click" IsDefault="True"/>
+    </Grid>
+</Window>

@@ -3,13 +3,16 @@ using System.Net.Http.Json;
 
 namespace CreateBatchFilesForXbox360XBLAGames;
 
-/// <inheritdoc />
 /// <summary>
-/// Service responsible for silently sending bug reports to the BugReport API
+/// Service responsible for silently sending bug reports to the BugReport API.
+/// This class is designed to be used as a singleton via the App class.
 /// </summary>
-public class BugReportService : IDisposable
+public class BugReportService
 {
-    private readonly HttpClient _httpClient = new();
+    // Use a single, static HttpClient instance for the application's lifetime
+    // to prevent socket exhaustion and improve performance.
+    private static readonly HttpClient HttpClient = new();
+
     private readonly string _apiUrl;
     private readonly string _apiKey;
     private readonly string _applicationName;
@@ -19,43 +22,35 @@ public class BugReportService : IDisposable
         _apiUrl = apiUrl;
         _apiKey = apiKey;
         _applicationName = applicationName;
-
-        // Add the API key to the headers once during initialization
-        _httpClient.DefaultRequestHeaders.Add("X-API-KEY", _apiKey);
     }
 
     /// <summary>
-    /// Silently sends a bug report to the API
+    /// Silently sends a bug report to the API.
     /// </summary>
-    /// <param name="message">The error message or bug report</param>
-    /// <returns>A task representing the asynchronous operation</returns>
-    // **FIXED**: Changed the return type from Task<bool> to Task to reflect fire-and-forget usage.
+    /// <param name="message">The error message or bug report.</param>
     public async Task SendBugReportAsync(string message)
     {
         try
         {
             // Create the request payload
-            var content = JsonContent.Create(new
+            var payload = new
             {
                 message,
                 applicationName = _applicationName
-            });
+            };
 
-            // Send the request
-            await _httpClient.PostAsync(_apiUrl, content);
+            // Create a new HttpRequestMessage for each call. This is thread-safe and ensures
+            // headers from one request do not interfere with another.
+            using var request = new HttpRequestMessage(HttpMethod.Post, _apiUrl);
+            request.Content = JsonContent.Create(payload);
+            request.Headers.Add("X-API-KEY", _apiKey);
+
+            // Send the request using the static HttpClient
+            await HttpClient.SendAsync(request);
         }
         catch
         {
             // Silently fail if there's an exception
         }
-    }
-
-    public void Dispose()
-    {
-        // Dispose the HttpClient to release any resources it holds
-        _httpClient?.Dispose();
-
-        // Suppress finalization since we've manually disposed resources
-        GC.SuppressFinalize(this);
     }
 }

@@ -7,17 +7,11 @@ using Microsoft.Win32;
 
 namespace CreateBatchFilesForXbox360XBLAGames;
 
-public partial class MainWindow : IDisposable
+public partial class MainWindow
 {
-    private readonly BugReportService _bugReportService;
-    private const string ApplicationName = "CreateBatchFilesForXbox360XBLAGames"; // Kept for local reporting context
-
     public MainWindow()
     {
         InitializeComponent();
-
-        // Get the shared bug report service instance from the App class
-        _bugReportService = ((App)Application.Current).BugReportService;
 
         LogMessage("Welcome to the Batch File Creator for Xbox 360 XBLA Games.");
         LogMessage("");
@@ -27,13 +21,21 @@ public partial class MainWindow : IDisposable
         LogMessage("2. Select the root folder containing your Xbox 360 XBLA game folders");
         LogMessage("3. Click 'Create Batch Files' to generate the batch files");
         LogMessage("");
+        UpdateStatusBarMessage("Ready");
+    }
+
+    private void UpdateStatusBarMessage(string message)
+    {
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            StatusBarMessage.Text = message;
+        });
     }
 
     private void Window_Closing(object sender, CancelEventArgs e)
     {
-        // Dispose of resources for this window.
         // The application will shut down automatically when the main window closes.
-        Dispose();
+        // No extra code is needed here.
     }
 
     private void LogMessage(string message)
@@ -54,6 +56,7 @@ public partial class MainWindow : IDisposable
 
             XeniaPathTextBox.Text = xeniaExePath;
             LogMessage($"Xenia executable selected: {xeniaExePath}");
+            UpdateStatusBarMessage("Xenia executable selected.");
 
             // Validate the Xenia executable
             if (!File.Exists(xeniaExePath))
@@ -61,7 +64,7 @@ public partial class MainWindow : IDisposable
                 LogMessage("Warning: The selected Xenia executable file does not exist.");
                 await ReportBugAsync("Selected Xenia executable does not exist: " + xeniaExePath);
             }
-            else if (!Path.GetFileName(xeniaExePath).Contains("xenia", StringComparison.CurrentCultureIgnoreCase))
+            else if (!Path.GetFileName(xeniaExePath).Contains("xenia", StringComparison.OrdinalIgnoreCase))
             {
                 LogMessage("Warning: The selected file does not appear to be a Xenia executable.");
                 await ReportBugAsync("Selected file may not be Xenia executable: " + xeniaExePath);
@@ -82,6 +85,7 @@ public partial class MainWindow : IDisposable
 
             GameFolderTextBox.Text = rootFolder;
             LogMessage($"Game folder selected: {rootFolder}");
+            UpdateStatusBarMessage("Game folder selected.");
 
             // Validate the game folder
             if (!Directory.Exists(rootFolder))
@@ -91,7 +95,6 @@ public partial class MainWindow : IDisposable
             }
             else
             {
-                // **FIXED BUG**: Check if the folder has any subdirectories and warn if it's empty.
                 var subDirectories = Directory.GetDirectories(rootFolder);
                 if (subDirectories.Length != 0) return;
 
@@ -116,6 +119,7 @@ public partial class MainWindow : IDisposable
             {
                 LogMessage("Error: No Xenia executable selected.");
                 ShowError("Please select the Xenia executable file (xenia.exe).");
+                UpdateStatusBarMessage("Error: Xenia executable not selected.");
                 return;
             }
 
@@ -124,6 +128,7 @@ public partial class MainWindow : IDisposable
                 LogMessage($"Error: Xenia executable not found at path: {xeniaExePath}");
                 ShowError("The selected Xenia executable file does not exist.");
                 await ReportBugAsync("Xenia executable not found", new FileNotFoundException("The Xenia executable was not found", xeniaExePath));
+                UpdateStatusBarMessage("Error: Xenia executable not found.");
                 return;
             }
 
@@ -131,6 +136,7 @@ public partial class MainWindow : IDisposable
             {
                 LogMessage("Error: No game folder selected.");
                 ShowError("Please select the root folder containing your Xbox 360 XBLA game folders.");
+                UpdateStatusBarMessage("Error: Game folder not selected.");
                 return;
             }
 
@@ -139,6 +145,7 @@ public partial class MainWindow : IDisposable
                 LogMessage($"Error: Game folder not found at path: {rootFolder}");
                 ShowError("The selected game folder does not exist.");
                 await ReportBugAsync("Game folder not found", new DirectoryNotFoundException($"Game folder not found: {rootFolder}"));
+                UpdateStatusBarMessage("Error: Game folder not found.");
                 return;
             }
 
@@ -151,11 +158,13 @@ public partial class MainWindow : IDisposable
                 LogMessage($"Error creating batch files: {ex.Message}");
                 ShowError($"An error occurred while creating batch files: {ex.Message}");
                 await ReportBugAsync("Error creating batch files", ex);
+                UpdateStatusBarMessage("Process failed with an error.");
             }
         }
         catch (Exception ex)
         {
             await ReportBugAsync("Error creating batch files", ex);
+            UpdateStatusBarMessage("An unexpected error occurred.");
         }
     }
 
@@ -192,7 +201,7 @@ public partial class MainWindow : IDisposable
 
             LogMessage("");
             LogMessage("Starting batch file creation process...");
-            LogMessage("");
+            UpdateStatusBarMessage("Creating batch files...");
 
             foreach (var gameDirectory in gameDirectories)
             {
@@ -213,15 +222,16 @@ public partial class MainWindow : IDisposable
                         continue;
                     }
 
-                    // Check if the batch file exists and whether we can write to it
                     try
                     {
                         await using (StreamWriter sw = new(batchFilePath))
                         {
-                            await sw.WriteLineAsync($"\"{xeniaExePath}\" \"{gameFilePath}\"");
-                            LogMessage($"Batch file created: {batchFilePath}");
+                            await sw.WriteLineAsync("@echo off");
+                            await sw.WriteLineAsync($"cd /d \"{Path.GetDirectoryName(xeniaExePath)}\"");
+                            await sw.WriteLineAsync($"start \"\" \"{Path.GetFileName(xeniaExePath)}\" \"{gameFilePath}\"");
                         }
 
+                        LogMessage($"Batch file created: {batchFilePath}");
                         filesCreated++;
                     }
                     catch (Exception ex)
@@ -242,6 +252,7 @@ public partial class MainWindow : IDisposable
             LogMessage("");
             LogMessage($"Processed {directoriesProcessed} directories.");
             LogMessage($"Skipped {directoriesSkipped} directories.");
+            UpdateStatusBarMessage($"Process complete. Created {filesCreated} files, skipped {directoriesSkipped}.");
 
             if (filesCreated > 0)
             {
@@ -265,6 +276,7 @@ public partial class MainWindow : IDisposable
         catch (Exception ex)
         {
             LogMessage($"Error scanning game folders: {ex.Message}");
+            UpdateStatusBarMessage("Error scanning game folders.");
             await ReportBugAsync("Error scanning game folders", ex);
             throw;
         }
@@ -279,58 +291,31 @@ public partial class MainWindow : IDisposable
             if (directories.Length > 0)
             {
                 var files = Directory.GetFiles(directories[0]);
-
-                if (files.Length > 0)
-                {
-                    return files[0];
-                }
-                else
-                {
-                    await ReportBugAsync($"No files found in 000D0000 directory for game: {Path.GetFileName(gameDirectory)}");
-                }
+                return files.Length > 0 ? files[0] : null;
             }
-            else
+
+            // If we couldn't find the 000D0000 directory, report the structure for debugging.
+            var directoryStructure = new StringBuilder();
+            directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Directory structure for {Path.GetFileName(gameDirectory)}:");
+            try
             {
-                // If we couldn't find the 000D0000 directory, let's try to report the directory structure
-                var directoryStructure = new StringBuilder();
-                directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Directory structure for {Path.GetFileName(gameDirectory)}:");
-
-                try
+                var allDirs = Directory.GetDirectories(gameDirectory, "*", SearchOption.AllDirectories);
+                foreach (var dir in allDirs.Take(10)) // Limit report size
                 {
-                    // Get top-level subdirectories
-                    var topLevelDirs = Directory.GetDirectories(gameDirectory);
-                    foreach (var dir in topLevelDirs)
-                    {
-                        directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"- {Path.GetFileName(dir)}");
-
-                        // Get second-level subdirectories (limited to keep the report reasonable)
-                        try
-                        {
-                            var secondLevelDirs = Directory.GetDirectories(dir);
-                            foreach (var subDir in secondLevelDirs.Take(5)) // Only report up to 5 subdirectories
-                            {
-                                directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"  - {Path.GetFileName(subDir)}");
-                            }
-
-                            if (secondLevelDirs.Length > 5)
-                            {
-                                directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"  - ... and {secondLevelDirs.Length - 5} more directories");
-                            }
-                        }
-                        catch
-                        {
-                            directoryStructure.AppendLine("  - Unable to access subdirectories");
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Error accessing directory structure: {ex.Message}");
+                    directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"- {Path.GetRelativePath(gameDirectory, dir)}");
                 }
 
-                await ReportBugAsync($"No 000D0000 directory found for game: {Path.GetFileName(gameDirectory)}",
-                    new DirectoryNotFoundException(directoryStructure.ToString()));
+                if (allDirs.Length > 10)
+                {
+                    directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"- ... and {allDirs.Length - 10} more directories");
+                }
             }
+            catch (Exception ex)
+            {
+                directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Error accessing directory structure: {ex.Message}");
+            }
+
+            await ReportBugAsync($"No 000D0000 directory found for game: {Path.GetFileName(gameDirectory)}", new DirectoryNotFoundException(directoryStructure.ToString()));
         }
         catch (Exception ex)
         {
@@ -344,7 +329,7 @@ public partial class MainWindow : IDisposable
     private void ShowMessageBox(string message, string title, MessageBoxButton buttons, MessageBoxImage icon)
     {
         Dispatcher.Invoke(() =>
-            MessageBox.Show(message, title, buttons, icon));
+            MessageBox.Show(this, message, title, buttons, icon));
     }
 
     private void ShowError(string message)
@@ -352,19 +337,19 @@ public partial class MainWindow : IDisposable
         ShowMessageBox(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
-    /// <summary>
-    /// Silently reports bugs/errors to the API
-    /// </summary>
     private async Task ReportBugAsync(string message, Exception? exception = null)
     {
+        if (App.BugReportService == null) return;
+
         try
         {
             var fullReport = new StringBuilder();
+            var assemblyName = GetType().Assembly.GetName();
 
             // Add system information
             fullReport.AppendLine("=== Bug Report ===");
-            fullReport.AppendLine($"Application: {ApplicationName}");
-            fullReport.AppendLine(CultureInfo.InvariantCulture, $"Version: {GetType().Assembly.GetName().Version}");
+            fullReport.AppendLine(CultureInfo.InvariantCulture, $"Application: {assemblyName.Name}");
+            fullReport.AppendLine(CultureInfo.InvariantCulture, $"Version: {assemblyName.Version}");
             fullReport.AppendLine(CultureInfo.InvariantCulture, $"OS: {Environment.OSVersion}");
             fullReport.AppendLine(CultureInfo.InvariantCulture, $".NET Version: {Environment.Version}");
             fullReport.AppendLine(CultureInfo.InvariantCulture, $"Date/Time: {DateTime.Now}");
@@ -399,42 +384,22 @@ public partial class MainWindow : IDisposable
             // Add log contents if available
             if (LogTextBox != null)
             {
-                var logContent = string.Empty;
-
-                // Safely get log content from UI thread
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    logContent = LogTextBox.Text;
-                });
-
+                var logContent = await Dispatcher.InvokeAsync(() => LogTextBox.Text);
                 if (!string.IsNullOrEmpty(logContent))
                 {
-                    fullReport.AppendLine();
-                    fullReport.AppendLine("=== Application Log ===");
-                    fullReport.Append(logContent);
+                    fullReport.AppendLine().AppendLine("=== Application Log ===").Append(logContent);
                 }
             }
 
             // Add Xenia and game folder paths if available
             if (XeniaPathTextBox != null && GameFolderTextBox != null)
             {
-                var xeniaPath = string.Empty;
-                var gameFolderPath = string.Empty;
-
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    xeniaPath = XeniaPathTextBox.Text;
-                    gameFolderPath = GameFolderTextBox.Text;
-                });
-
-                fullReport.AppendLine();
-                fullReport.AppendLine("=== Configuration ===");
-                fullReport.AppendLine(CultureInfo.InvariantCulture, $"Xenia Path: {xeniaPath}");
-                fullReport.AppendLine(CultureInfo.InvariantCulture, $"Game Folder Path: {gameFolderPath}");
+                var (xeniaPath, gameFolderPath) = await Dispatcher.InvokeAsync(() => (XeniaPathTextBox.Text, GameFolderTextBox.Text));
+                fullReport.AppendLine().AppendLine("=== Configuration ===").AppendLine(CultureInfo.InvariantCulture, $"Xenia Path: {xeniaPath}").AppendLine(CultureInfo.InvariantCulture, $"Game Folder Path: {gameFolderPath}");
             }
 
             // Silently send the report
-            await _bugReportService.SendBugReportAsync(fullReport.ToString());
+            await App.BugReportService.SendBugReportAsync(fullReport.ToString());
         }
         catch
         {
@@ -442,12 +407,22 @@ public partial class MainWindow : IDisposable
         }
     }
 
-    public void Dispose()
+    private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        // Dispose the bug report service (though it's managed by App, this is safe)
-        _bugReportService?.Dispose();
+        Close();
+    }
 
-        // Suppress finalization since there's no need for it
-        GC.SuppressFinalize(this);
+    private void AboutMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var aboutWindow = new AboutWindow();
+            aboutWindow.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            LogMessage($"Error opening About window: {ex.Message}");
+            _ = ReportBugAsync("Error opening About window", ex);
+        }
     }
 }

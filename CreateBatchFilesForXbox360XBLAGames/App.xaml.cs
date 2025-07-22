@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using System.Text;
-using System.Windows;
 using System.Windows.Threading;
 
 namespace CreateBatchFilesForXbox360XBLAGames;
@@ -9,34 +8,27 @@ namespace CreateBatchFilesForXbox360XBLAGames;
 /// <summary>
 /// Interaction logic for App.xaml
 /// </summary>
-public partial class App : IDisposable
+public partial class App
 {
     // Bug Report API configuration (centralized here)
     private const string BugReportApiUrl = "https://www.purelogiccode.com/bugreport/api/send-bug-report";
     private const string BugReportApiKey = "hjh7yu6t56tyr540o9u8767676r5674534453235264c75b6t7ggghgg76trf564e";
     private const string ApplicationName = "CreateBatchFilesForXbox360XBLAGames";
 
-    // Public property to share the service instance
-    public BugReportService BugReportService { get; }
+    /// <summary>
+    /// Provides a single, shared instance of the BugReportService for the entire application.
+    /// </summary>
+    public static BugReportService? BugReportService { get; private set; }
 
     public App()
     {
-        // Initialize the bug report service
+        // Initialize the single bug report service instance for the application.
         BugReportService = new BugReportService(BugReportApiUrl, BugReportApiKey, ApplicationName);
 
         // Set up global exception handling
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         DispatcherUnhandledException += App_DispatcherUnhandledException;
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-
-        // Hook into the Exit event to properly dispose of resources
-        Exit += App_Exit;
-    }
-
-    private void App_Exit(object sender, ExitEventArgs e)
-    {
-        // Ensure resources are disposed when the application closes
-        Dispose();
     }
 
     private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -65,8 +57,11 @@ public partial class App : IDisposable
         {
             var message = BuildExceptionReport(exception, source);
 
-            // Silently report the exception to our API
-            await BugReportService.SendBugReportAsync(message);
+            // Silently report the exception to our API using the shared service instance.
+            if (BugReportService != null)
+            {
+                await BugReportService.SendBugReportAsync(message);
+            }
         }
         catch
         {
@@ -113,19 +108,5 @@ public partial class App : IDisposable
 
             break;
         }
-    }
-
-    public void Dispose()
-    {
-        // Clean up event handlers
-        AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
-        DispatcherUnhandledException -= App_DispatcherUnhandledException;
-        TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
-
-        // Dispose the bug report service
-        BugReportService?.Dispose();
-
-        // Suppress finalization since we've manually disposed resources
-        GC.SuppressFinalize(this);
     }
 }
