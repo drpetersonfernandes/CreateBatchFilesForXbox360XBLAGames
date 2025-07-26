@@ -6,8 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ApplicationIcon>icon\icon.ico</ApplicationIcon>
-    <AssemblyVersion>1.5</AssemblyVersion>
-    <FileVersion>1.5</FileVersion>
+    <AssemblyVersion>1.4</AssemblyVersion>
+    <FileVersion>1.4</FileVersion>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <LangVersion>13</LangVersion>
     <IsPackable>false</IsPackable>
