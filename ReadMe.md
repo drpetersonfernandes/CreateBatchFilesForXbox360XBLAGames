@@ -13,7 +13,7 @@ Batch File Creator for Xbox 360 XBLA Games is a Windows application that provide
 ### Core Features
 - **Batch File Creation**: Automatically scans a root folder and creates individual `.bat` files for each XBLA game found.
 - **Simple Workflow**: A clean, single-window interface with a menu and status bar for selecting the Xenia executable and the games folder.
-- **Automatic Game Discovery**: Intelligently searches within each game's directory for the specific XBLA executable file structure (typically inside a `000D0000` subdirectory).
+- **Automatic Game Discovery**: Intelligently searches within each game's directory for the specific XBLA file structure (typically inside a `000D0000` subdirectory), with a robust fallback mechanism.
 - **User-Friendly Interface**: Designed for simplicity and ease of use.
 
 ### Logging & Reporting
@@ -28,15 +28,15 @@ Batch File Creator for Xbox 360 XBLA Games is a Windows application that provide
 ## Supported Formats
 
 ### Input
-- A root folder containing individual subfolders for each Xbox 360 XBLA game. The application expects a standard XBLA directory structure where the main game file is located within a path like `Content/0000000000000000/TITLE_ID/000D0000/`.
+- A root folder containing individual subfolders for each Xbox 360 XBLA game. The application first attempts to find the main game file within a specific XBLA directory structure (typically inside a `000D0000` subdirectory, e.g., `Content/0000000000000000/TITLE_ID/000D0000/`).
+- If the `000D0000` directory is not found, the tool will fall back to selecting the first file it finds recursively within the game's folder. This provides flexibility for various game rip structures.
 
 ### Output
 - **`.bat` (Windows Batch) files**, one for each game, placed in the root games folder.
 
 ## Requirements
 
-- **Operating System**: Windows 7 or later
-- **Runtime**: [.NET 9.0 Runtime](https://dotnet.microsoft.com/download/dotnet/9.0)
+- **Runtime**: [.NET 10.0 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
 - **Dependencies**: A working copy of the **Xenia emulator** (`xenia.exe`).
 
 ## Installation
@@ -54,16 +54,28 @@ Batch File Creator for Xbox 360 XBLA Games is a Windows application that provide
 3.  **Create Batch Files**: Click the "Create Batch Files" button.
 4.  **Monitor Progress**: The application will scan the folders and create the `.bat` files. The log window will display the results. The generated batch files will appear in the same folder you selected as the "Games Folder", ready to be used.
 
+## How It Works (Technical Details)
+
+The application performs the following steps:
+1.  **Xenia Path Selection**: You select the `xenia.exe` file. This path is used to construct the batch file command.
+2.  **Games Folder Selection**: You select a root directory containing subfolders, where each subfolder represents an XBLA game.
+3.  **Game Discovery**: For each subfolder in the "Games Folder":
+    *   It first searches for a `000D0000` subdirectory (e.g., `GameTitle/Content/0000000000000000/TITLE_ID/000D0000/`). If found, it takes the first file within that directory as the game's main executable.
+    *   If `000D0000` is not found, it performs a recursive search within the game's subfolder and selects the first file it encounters. This provides a fallback for less common directory structures.
+4.  **Batch File Generation**: For each discovered game file, a `.bat` file is created in the root "Games Folder" with the name of the game's subfolder. The content of the batch file is structured to:
+    *   Change the current directory to where `xenia.exe` is located (`cd /d "C:\Path\To\Xenia"`). This ensures Xenia can find its configuration and log files correctly.
+    *   Launch Xenia with the specific game file as an argument (`start "" "xenia.exe" "C:\Path\To\Game\GameFile.xex"`).
+
 ## Troubleshooting
 
 ### Common Issues
 - **"No valid game folders found"**: This usually means the folder you selected as the "Games Folder" does not contain any subdirectories. Ensure it's the parent folder of all your game folders.
-- **"Game file not found" / Files are skipped**: The tool specifically looks for a game file inside a `000D0000` subfolder within each game's directory. If your game rip has a different structure, it will be skipped. The application will attempt to log the directory structure of skipped folders to help with debugging.
+- **"Game file not found" / Files are skipped**:
+    - The tool primarily looks for a game file inside a `000D0000` subfolder within each game's directory, which is common for XBLA titles.
+    - If `000D0000` is not found, it will attempt to use the first file found recursively within the game's folder.
+    - If your game rip has a significantly different structure and no files are found, it will be skipped. The application will log the directory structure of skipped folders to help with debugging.
 - **Permissions**: Ensure the application has permission to write new `.bat` files into your selected "Games Folder". Running as an administrator may help if you encounter access errors.
-
-### Error Reporting
-- The application automatically reports critical errors to the developer for analysis.
-- Always check the log window for detailed error messages and information about why a file might have been skipped.
+- **Incorrect .NET Runtime**: Ensure you have the correct [.NET 10.0 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) installed.
 
 ## Acknowledgements
 
