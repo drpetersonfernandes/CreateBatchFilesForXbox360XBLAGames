@@ -178,7 +178,7 @@ public partial class MainWindow
         return fbd.ShowDialog() == true ? fbd.FolderName : null;
     }
 
-    private string? SelectFile()
+    private static string? SelectFile()
     {
         var ofd = new OpenFileDialog
         {
@@ -217,8 +217,6 @@ public partial class MainWindow
                     {
                         LogMessage($"No game file found in {gameFolderName}. Skipping...");
                         directoriesSkipped++;
-                        await ReportBugAsync($"No game file found in directory: {gameFolderName}",
-                            new FileNotFoundException("No game file found in XBLA directory structure", gameDirectory));
                         continue;
                     }
 
@@ -287,14 +285,21 @@ public partial class MainWindow
         try
         {
             var directories = Directory.GetDirectories(gameDirectory, "000D0000", SearchOption.AllDirectories);
-
             if (directories.Length > 0)
             {
                 var files = Directory.GetFiles(directories[0]);
                 return files.Length > 0 ? files[0] : null;
             }
 
-            // If we couldn't find the 000D0000 directory, report the structure for debugging.
+            // If we couldn't find the 000D0000 directory, pick the first file found recursively
+            var allFiles = Directory.GetFiles(gameDirectory, "*", SearchOption.AllDirectories);
+            if (allFiles.Length > 0)
+            {
+                LogMessage($"000D0000 directory not found for {Path.GetFileName(gameDirectory)}, using first available file: {Path.GetFileName(allFiles[0])}");
+                return allFiles[0];
+            }
+
+            // If no files found at all, report the structure for debugging.
             var directoryStructure = new StringBuilder();
             directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Directory structure for {Path.GetFileName(gameDirectory)}:");
             try
@@ -315,7 +320,7 @@ public partial class MainWindow
                 directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Error accessing directory structure: {ex.Message}");
             }
 
-            await ReportBugAsync($"No 000D0000 directory found for game: {Path.GetFileName(gameDirectory)}", new DirectoryNotFoundException(directoryStructure.ToString()));
+            await ReportBugAsync($"No files found for game: {Path.GetFileName(gameDirectory)}", new DirectoryNotFoundException(directoryStructure.ToString()));
         }
         catch (Exception ex)
         {
@@ -351,6 +356,8 @@ public partial class MainWindow
             fullReport.AppendLine(CultureInfo.InvariantCulture, $"Application: {assemblyName.Name}");
             fullReport.AppendLine(CultureInfo.InvariantCulture, $"Version: {assemblyName.Version}");
             fullReport.AppendLine(CultureInfo.InvariantCulture, $"OS: {Environment.OSVersion}");
+            fullReport.AppendLine(CultureInfo.InvariantCulture, $"Architecture: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}");
+            fullReport.AppendLine(CultureInfo.InvariantCulture, $"OS Architecture: {System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}");
             fullReport.AppendLine(CultureInfo.InvariantCulture, $".NET Version: {Environment.Version}");
             fullReport.AppendLine(CultureInfo.InvariantCulture, $"Date/Time: {DateTime.Now}");
             fullReport.AppendLine();
