@@ -149,6 +149,16 @@ public partial class MainWindow
                 return;
             }
 
+            if (!CheckWritePermission(rootFolder))
+            {
+                const string errorMessage = "No write permission for the selected folder. " +
+                                            "Please try running the application as administrator or select a folder where you have write permission.";
+                LogMessage($"Error: {errorMessage}");
+                ShowError(errorMessage);
+                UpdateStatusBarMessage("Error: Access denied.");
+                return;
+            }
+
             try
             {
                 await CreateBatchFilesForXboxXblaGames(rootFolder, xeniaExePath);
@@ -232,6 +242,11 @@ public partial class MainWindow
                         LogMessage($"Batch file created: {batchFilePath}");
                         filesCreated++;
                     }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        LogMessage($"Permission denied creating batch file for {gameFolderName}: {ex.Message}");
+                        directoriesSkipped++;
+                    }
                     catch (Exception ex)
                     {
                         LogMessage($"Error creating batch file for {gameFolderName}: {ex.Message}");
@@ -267,7 +282,7 @@ public partial class MainWindow
                 LogMessage(errorMessage);
                 ShowError(errorMessage);
 
-                var ex = new Exception($"Processed {directoriesProcessed} directories but created 0 batch files");
+                var ex = new InvalidOperationException($"Processed {directoriesProcessed} directories but created 0 batch files");
                 await ReportBugAsync(errorMessage, ex);
             }
         }
@@ -340,6 +355,23 @@ public partial class MainWindow
     private void ShowError(string message)
     {
         ShowMessageBox(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+
+    private static bool CheckWritePermission(string directoryPath)
+    {
+        try
+        {
+            var testFilePath = Path.Combine(directoryPath, Path.GetRandomFileName());
+            using (File.Create(testFilePath, 1, FileOptions.DeleteOnClose))
+            {
+            }
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private async Task ReportBugAsync(string message, Exception? exception = null)

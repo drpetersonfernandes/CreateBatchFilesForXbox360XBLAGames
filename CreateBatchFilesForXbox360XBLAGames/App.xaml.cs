@@ -31,7 +31,7 @@ public partial class App
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
     }
 
-    private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         if (e.ExceptionObject is Exception exception)
         {
@@ -39,19 +39,19 @@ public partial class App
         }
     }
 
-    private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    private static void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         ReportException(e.Exception, "Application.DispatcherUnhandledException");
         e.Handled = true;
     }
 
-    private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         ReportException(e.Exception, "TaskScheduler.UnobservedTaskException");
         e.SetObserved();
     }
 
-    private async void ReportException(Exception exception, string source)
+    private static async void ReportException(Exception exception, string source)
     {
         try
         {
@@ -69,7 +69,7 @@ public partial class App
         }
     }
 
-    private string BuildExceptionReport(Exception exception, string source)
+    private static string BuildExceptionReport(Exception exception, string source)
     {
         var sb = new StringBuilder();
         sb.AppendLine(CultureInfo.InvariantCulture, $"Error Source: {source}");
@@ -85,7 +85,7 @@ public partial class App
         return sb.ToString();
     }
 
-    private void AppendExceptionDetails(StringBuilder sb, Exception exception, int level = 0)
+    private static void AppendExceptionDetails(StringBuilder sb, Exception exception, int level = 0)
     {
         while (true)
         {
@@ -102,7 +102,7 @@ public partial class App
             {
                 sb.AppendLine(CultureInfo.InvariantCulture, $"{indent}Inner Exception:");
                 exception = exception.InnerException;
-                level = level + 1;
+                level += 1;
                 continue;
             }
 
