@@ -4,82 +4,97 @@
         Title="Batch File Creator for Xbox 360 XBLA Games"
         Height="550" Width="800" MinHeight="500" MinWidth="600"
         Closing="Window_Closing"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource WindowBackgroundBrush}">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/> <!-- Menu -->
+            <RowDefinition Height="Auto"/> <!-- Header -->
             <RowDefinition Height="*"/>    <!-- Main Content -->
             <RowDefinition Height="Auto"/> <!-- Status Bar -->
         </Grid.RowDefinitions>
 
-        <Menu Grid.Row="0">
-            <MenuItem Header="_File">
-                <MenuItem Header="E_xit" Click="ExitMenuItem_Click">
-                    <MenuItem.Icon>
-                        <Image Source="pack://application:,,,/images/exit.png" Width="16" Height="16" />
-                    </MenuItem.Icon>
-                </MenuItem>
-            </MenuItem>
-            <MenuItem Header="_Help">
-                <MenuItem Header="_About" Click="AboutMenuItem_Click">
-                    <MenuItem.Icon>
-                        <Image Source="pack://application:,,,/images/about.png" Width="16" Height="16" />
-                    </MenuItem.Icon>
-                </MenuItem>
-            </MenuItem>
-        </Menu>
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{StaticResource HeaderBackgroundBrush}" Padding="15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Batch File Creator for Xbox 360 XBLA Games" Style="{StaticResource HeaderTitleStyle}" Margin="0,0,30,0"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Click="AboutMenuItem_Click" Style="{StaticResource ActionButtonStyle}" Background="{StaticResource AboutButtonBrush}">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="pack://application:,,,/images/about.png" Width="16" Height="16" Margin="0,0,5,0"/>
+                                <TextBlock Text="About" Style="{StaticResource ButtonContentTextStyle}"/>
+                            </StackPanel>
+                        </Button.Content>
+                    </Button>
+                    <Button Click="ExitMenuItem_Click" Style="{StaticResource ActionButtonStyle}" Background="{StaticResource ExitButtonBrush}">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="pack://application:,,,/images/exit.png" Width="16" Height="16" Margin="0,0,5,0"/>
+                                <TextBlock Text="Exit" Style="{StaticResource ButtonContentTextStyle}"/>
+                            </StackPanel>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <!-- Main Content Area -->
-        <Grid Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <Grid Grid.Row="1" Margin="15">
+            <Border Style="{StaticResource CardBorder}" Padding="15" Margin="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-            <!-- Xenia Path Selection -->
-            <Grid Grid.Row="0" Margin="10,10,10,5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="90"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" Content="Xenia Path:" VerticalAlignment="Center"/>
-                <TextBox x:Name="XeniaPathTextBox" Grid.Column="1" Margin="5,0,5,0" Padding="5" IsReadOnly="True"/>
-                <Button x:Name="BrowseXeniaButton" Grid.Column="2" Content="Browse" Click="BrowseXeniaButton_Click" Padding="10,5"/>
-            </Grid>
+                    <!-- Xenia Path Selection -->
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Xenia Path:" VerticalAlignment="Center"/>
+                        <TextBox x:Name="XeniaPathTextBox" Grid.Column="1" Margin="5,0" IsReadOnly="True"/>
+                        <Button x:Name="BrowseXeniaButton" Grid.Column="2" Content="Browse" Click="BrowseXeniaButton_ClickAsync" Style="{StaticResource ActionButtonStyle}"/>
+                    </Grid>
 
-            <!-- Game Folder Selection -->
-            <Grid Grid.Row="1" Margin="10,5,10,5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="90"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" Content="Games Folder:" VerticalAlignment="Center"/>
-                <TextBox x:Name="GameFolderTextBox" Grid.Column="1" Margin="5,0,5,0" Padding="5" IsReadOnly="True"/>
-                <Button x:Name="BrowseFolderButton" Grid.Column="2" Content="Browse" Click="BrowseFolderButton_Click" Padding="10,5"/>
-            </Grid>
+                    <!-- Game Folder Selection -->
+                    <Grid Grid.Row="1" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Games Folder:" VerticalAlignment="Center"/>
+                        <TextBox x:Name="GameFolderTextBox" Grid.Column="1" Margin="5,0" IsReadOnly="True"/>
+                        <Button x:Name="BrowseFolderButton" Grid.Column="2" Content="Browse" Click="BrowseFolderButton_ClickAsync" Style="{StaticResource ActionButtonStyle}"/>
+                    </Grid>
 
-            <!-- Create Batch Files Button -->
-            <Button x:Name="CreateBatchFilesButton" Grid.Row="2" Content="Create Batch Files" Click="CreateBatchFilesButton_Click" 
-                    Margin="10,10,10,15" Padding="15,8" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <!-- Create Batch Files Button -->
+                    <Button x:Name="CreateBatchFilesButton" Grid.Row="2" Content="Create Batch Files" Click="CreateBatchFilesButton_ClickAsync" 
+                            Style="{StaticResource StartButtonStyle}" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
 
-            <!-- Log TextBox -->
-            <TextBox x:Name="LogTextBox"
-                     Grid.Row="3"
-                     AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Visible"
-                     IsReadOnly="True"
-                     Margin="10,0,10,10"
-                     FontFamily="Consolas"/>
+                    <!-- Log TextBox -->
+                    <Border Grid.Row="3" BorderBrush="{StaticResource TerminalBorderBrush}" BorderThickness="2" CornerRadius="4" Background="{StaticResource TerminalBackgroundBrush}">
+                        <TextBox x:Name="LogTextBox"
+                                 Style="{StaticResource TerminalLogTextBoxWithGlow}"/>
+                    </Border>
+                </Grid>
+            </Border>
         </Grid>
 
         <!-- Status Bar -->
-        <StatusBar Grid.Row="2">
+        <StatusBar Grid.Row="2" Background="{StaticResource StatusBarBackgroundBrush}" Padding="5">
             <StatusBarItem>
-                <TextBlock x:Name="StatusBarMessage" Text="Ready" />
+                <TextBlock x:Name="StatusBarMessage" Text="Ready" Foreground="{StaticResource TextSecondaryBrush}"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

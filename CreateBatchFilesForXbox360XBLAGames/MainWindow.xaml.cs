@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using Microsoft.Win32;
@@ -34,8 +35,7 @@ public partial class MainWindow
 
     private void Window_Closing(object sender, CancelEventArgs e)
     {
-        // The application will shut down automatically when the main window closes.
-        // No extra code is needed here.
+        BugReportService.CancelAll();
     }
 
     private void LogMessage(string message)
@@ -47,7 +47,7 @@ public partial class MainWindow
         });
     }
 
-    private async void BrowseXeniaButton_Click(object sender, RoutedEventArgs e)
+    private async void BrowseXeniaButton_ClickAsync(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -72,11 +72,11 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            await ReportBugAsync("Error in method BrowseXeniaButton_Click", ex);
+            await ReportBugAsync("Error in method BrowseXeniaButton_ClickAsync", ex);
         }
     }
 
-    private async void BrowseFolderButton_Click(object sender, RoutedEventArgs e)
+    private async void BrowseFolderButton_ClickAsync(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -104,11 +104,11 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            await ReportBugAsync("Error in method BrowseFolderButton_Click", ex);
+            await ReportBugAsync("Error in method BrowseFolderButton_ClickAsync", ex);
         }
     }
 
-    private async void CreateBatchFilesButton_Click(object sender, RoutedEventArgs e)
+    private async void CreateBatchFilesButton_ClickAsync(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -161,7 +161,7 @@ public partial class MainWindow
 
             try
             {
-                await CreateBatchFilesForXboxXblaGames(rootFolder, xeniaExePath);
+                await CreateBatchFilesForXboxXblaGamesAsync(rootFolder, xeniaExePath);
             }
             catch (Exception ex)
             {
@@ -200,7 +200,7 @@ public partial class MainWindow
         return ofd.ShowDialog() == true ? ofd.FileName : null;
     }
 
-    private async Task CreateBatchFilesForXboxXblaGames(string rootFolder, string xeniaExePath)
+    private async Task CreateBatchFilesForXboxXblaGamesAsync(string rootFolder, string xeniaExePath)
     {
         try
         {
@@ -221,7 +221,7 @@ public partial class MainWindow
                     var gameFolderName = Path.GetFileName(gameDirectory);
                     var batchFilePath = Path.Combine(rootFolder, gameFolderName + ".bat");
 
-                    var gameFilePath = await FindGameFile(gameDirectory);
+                    var gameFilePath = await FindGameFileAsync(gameDirectory);
 
                     if (string.IsNullOrEmpty(gameFilePath))
                     {
@@ -295,7 +295,7 @@ public partial class MainWindow
         }
     }
 
-    private async Task<string?> FindGameFile(string gameDirectory)
+    private async Task<string?> FindGameFileAsync(string gameDirectory)
     {
         try
         {
@@ -357,7 +357,7 @@ public partial class MainWindow
         ShowMessageBox(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
-    private static bool CheckWritePermission(string directoryPath)
+    internal static bool CheckWritePermission(string directoryPath)
     {
         try
         {
@@ -380,28 +380,36 @@ public partial class MainWindow
 
         try
         {
-            var fullReport = new StringBuilder();
             var assemblyName = GetType().Assembly.GetName();
+            var applicationVersion = assemblyName.Version?.ToString() ?? "1.6.0";
 
-            // Add system information
-            fullReport.AppendLine("=== Bug Report ===");
-            fullReport.AppendLine(CultureInfo.InvariantCulture, $"Application: {assemblyName.Name}");
-            fullReport.AppendLine(CultureInfo.InvariantCulture, $"Version: {assemblyName.Version}");
-            fullReport.AppendLine(CultureInfo.InvariantCulture, $"OS: {Environment.OSVersion}");
-            fullReport.AppendLine(CultureInfo.InvariantCulture, $"Architecture: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}");
-            fullReport.AppendLine(CultureInfo.InvariantCulture, $"OS Architecture: {System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}");
-            fullReport.AppendLine(CultureInfo.InvariantCulture, $".NET Version: {Environment.Version}");
-            fullReport.AppendLine(CultureInfo.InvariantCulture, $"Date/Time: {DateTime.Now}");
+            var environment = new StringBuilder();
+            environment.AppendLine(CultureInfo.InvariantCulture, $"Date: {DateTime.Now}");
+            environment.AppendLine(CultureInfo.InvariantCulture, $"Application Name: {assemblyName.Name}");
+            environment.AppendLine(CultureInfo.InvariantCulture, $"Application Version: {applicationVersion}");
+            environment.AppendLine(CultureInfo.InvariantCulture, $"OS Version: {Environment.OSVersion}");
+            environment.AppendLine(CultureInfo.InvariantCulture, $"Architecture: {RuntimeInformation.ProcessArchitecture}");
+            environment.AppendLine(CultureInfo.InvariantCulture, $"Bitness: {(Environment.Is64BitProcess ? "64-bit" : "32-bit")}");
+            environment.AppendLine(CultureInfo.InvariantCulture, $"Windows Version: {RuntimeInformation.OSDescription}");
+            environment.AppendLine(CultureInfo.InvariantCulture, $"Processor Count: {Environment.ProcessorCount}");
+            environment.AppendLine(CultureInfo.InvariantCulture, $"Base Directory: {AppContext.BaseDirectory}");
+            environment.AppendLine(CultureInfo.InvariantCulture, $"Temp Path: {Path.GetTempPath()}");
+            var environmentStr = environment.ToString();
+
+            var fullReport = new StringBuilder();
+            fullReport.AppendLine("=== Environment Details ===");
+            fullReport.Append(environmentStr);
             fullReport.AppendLine();
-
-            // Add a message
-            fullReport.AppendLine("=== Error Message ===");
+            fullReport.AppendLine("=== Error Details ===");
             fullReport.AppendLine(message);
             fullReport.AppendLine();
 
-            // Add exception details if available
+            string? stackTrace = null;
+
             if (exception != null)
             {
+                stackTrace = exception.StackTrace;
+
                 fullReport.AppendLine("=== Exception Details ===");
                 fullReport.AppendLine(CultureInfo.InvariantCulture, $"Type: {exception.GetType().FullName}");
                 fullReport.AppendLine(CultureInfo.InvariantCulture, $"Message: {exception.Message}");
@@ -409,7 +417,6 @@ public partial class MainWindow
                 fullReport.AppendLine("Stack Trace:");
                 fullReport.AppendLine(exception.StackTrace);
 
-                // Add inner exception if available
                 if (exception.InnerException != null)
                 {
                     fullReport.AppendLine("Inner Exception:");
@@ -420,7 +427,6 @@ public partial class MainWindow
                 }
             }
 
-            // Add log contents if available
             if (LogTextBox != null)
             {
                 var logContent = await Dispatcher.InvokeAsync(() => LogTextBox.Text);
@@ -430,15 +436,13 @@ public partial class MainWindow
                 }
             }
 
-            // Add Xenia and game folder paths if available
             if (XeniaPathTextBox != null && GameFolderTextBox != null)
             {
                 var (xeniaPath, gameFolderPath) = await Dispatcher.InvokeAsync(() => (XeniaPathTextBox.Text, GameFolderTextBox.Text));
                 fullReport.AppendLine().AppendLine("=== Configuration ===").AppendLine(CultureInfo.InvariantCulture, $"Xenia Path: {xeniaPath}").AppendLine(CultureInfo.InvariantCulture, $"Game Folder Path: {gameFolderPath}");
             }
 
-            // Silently send the report
-            await App.BugReportService.SendBugReportAsync(fullReport.ToString());
+            await App.BugReportService.SendBugReportAsync(fullReport.ToString(), applicationVersion, environmentStr, stackTrace);
         }
         catch
         {
@@ -448,7 +452,8 @@ public partial class MainWindow
 
     private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        Close();
+        BugReportService.CancelAll();
+        Application.Current.Shutdown();
     }
 
     private void AboutMenuItem_Click(object sender, RoutedEventArgs e)

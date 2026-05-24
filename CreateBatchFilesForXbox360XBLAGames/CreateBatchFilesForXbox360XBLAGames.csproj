@@ -16,6 +16,9 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="CreateBatchFilesForXbox360XBLAGames.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <Resource Include="icon\icon.ico" />
     <Resource Include="icon\icon.png" />
     <Resource Include="images\about.png" />

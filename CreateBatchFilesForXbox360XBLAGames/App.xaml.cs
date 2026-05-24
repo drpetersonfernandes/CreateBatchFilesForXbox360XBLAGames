@@ -1,4 +1,7 @@
 ﻿using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Threading;
 
@@ -15,52 +18,93 @@ public partial class App
     private const string BugReportApiKey = "hjh7yu6t56tyr540o9u8767676r5674534453235264c75b6t7ggghgg76trf564e";
     private const string ApplicationName = "CreateBatchFilesForXbox360XBLAGames";
 
+    // Stats API configuration
+    private const string StatsApiUrl = "https://www.purelogiccode.com/ApplicationStats/stats";
+
     /// <summary>
     /// Provides a single, shared instance of the BugReportService for the entire application.
     /// </summary>
     public static BugReportService? BugReportService { get; private set; }
 
+    /// <summary>
+    /// Provides a single, shared instance of the StatsService for the entire application.
+    /// </summary>
+    public static StatsService? StatsService { get; private set; }
+
     public App()
     {
         // Initialize the single bug report service instance for the application.
-        BugReportService = new BugReportService(BugReportApiUrl, BugReportApiKey, ApplicationName);
+        var applicationVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.6.0";
+        BugReportService = new BugReportService(BugReportApiUrl, BugReportApiKey, ApplicationName, applicationVersion);
+
+        // Initialize the stats service and report application usage.
+        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
+        StatsService = new StatsService(StatsApiUrl, BugReportApiKey, ApplicationName, version);
 
         // Set up global exception handling
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         DispatcherUnhandledException += App_DispatcherUnhandledException;
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+        // Ensure all pending operations are cancelled when the app exits
+        Exit += static (_, _) =>
+        {
+            BugReportService.CancelAll();
+            StatsService.CancelAll();
+        };
+
+        // Fire and forget: track application usage on startup.
+        _ = TrackApplicationUsageAsync();
+    }
+
+    private static async Task TrackApplicationUsageAsync()
+    {
+        try
+        {
+            if (StatsService != null)
+            {
+                await StatsService.SendStatsAsync();
+            }
+        }
+        catch
+        {
+            // ignored
+        }
     }
 
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         if (e.ExceptionObject is Exception exception)
         {
-            ReportException(exception, "AppDomain.UnhandledException");
+            ReportExceptionAsync(exception, "AppDomain.UnhandledException");
         }
     }
 
     private static void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        ReportException(e.Exception, "Application.DispatcherUnhandledException");
+        ReportExceptionAsync(e.Exception, "Application.DispatcherUnhandledException");
         e.Handled = true;
     }
 
     private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
-        ReportException(e.Exception, "TaskScheduler.UnobservedTaskException");
+        ReportExceptionAsync(e.Exception, "TaskScheduler.UnobservedTaskException");
         e.SetObserved();
     }
 
-    private static async void ReportException(Exception exception, string source)
+    private static async void ReportExceptionAsync(Exception exception, string source)
     {
         try
         {
-            var message = BuildExceptionReport(exception, source);
+            var applicationVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.6.0";
+            var environment = BuildEnvironmentDetails();
+            var message = BuildExceptionReport(exception, source, environment);
+            var stackTrace = exception.StackTrace;
 
             // Silently report the exception to our API using the shared service instance.
             if (BugReportService != null)
             {
-                await BugReportService.SendBugReportAsync(message);
+                await BugReportService.SendBugReportAsync(message, applicationVersion, environment, stackTrace);
             }
         }
         catch
@@ -69,23 +113,37 @@ public partial class App
         }
     }
 
-    private static string BuildExceptionReport(Exception exception, string source)
+    internal static string BuildEnvironmentDetails()
     {
         var sb = new StringBuilder();
-        sb.AppendLine(CultureInfo.InvariantCulture, $"Error Source: {source}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"Date and Time: {DateTime.Now}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Date: {DateTime.Now}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Application Name: {ApplicationName}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Application Version: {Assembly.GetExecutingAssembly().GetName().Version}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"OS Version: {Environment.OSVersion}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $".NET Version: {Environment.Version}");
-        sb.AppendLine();
-
-        // Add exception details
-        sb.AppendLine("Exception Details:");
-        AppendExceptionDetails(sb, exception);
-
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Architecture: {RuntimeInformation.ProcessArchitecture}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Bitness: {(Environment.Is64BitProcess ? "64-bit" : "32-bit")}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Windows Version: {RuntimeInformation.OSDescription}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Processor Count: {Environment.ProcessorCount}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Base Directory: {AppContext.BaseDirectory}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Temp Path: {Path.GetTempPath()}");
         return sb.ToString();
     }
 
-    private static void AppendExceptionDetails(StringBuilder sb, Exception exception, int level = 0)
+    internal static string BuildExceptionReport(Exception exception, string source, string environment)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("=== Environment Details ===");
+        sb.Append(environment);
+        sb.AppendLine();
+        sb.AppendLine("=== Error Details ===");
+        sb.AppendLine(source);
+        sb.AppendLine();
+        sb.AppendLine("=== Exception Details ===");
+        AppendExceptionDetails(sb, exception);
+        return sb.ToString();
+    }
+
+    internal static void AppendExceptionDetails(StringBuilder sb, Exception exception, int level = 0)
     {
         while (true)
         {
