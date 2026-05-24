@@ -15,7 +15,8 @@ public class StatsService
         Timeout = TimeSpan.FromSeconds(5)
     };
 
-    private static readonly CancellationTokenSource GlobalCts = new();
+    private static CancellationTokenSource _globalCts = new();
+    private static readonly object CtsLock = new();
 
     private readonly string _apiUrl;
     private readonly string _apiKey;
@@ -32,9 +33,24 @@ public class StatsService
 
     public static void CancelAll()
     {
+        CancellationTokenSource oldCts;
+        lock (CtsLock)
+        {
+            oldCts = _globalCts;
+            _globalCts = new CancellationTokenSource();
+        }
+
         try
         {
-            GlobalCts.Cancel();
+            oldCts.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+
+        try
+        {
+            oldCts.Dispose();
         }
         catch (ObjectDisposedException)
         {
@@ -44,16 +60,9 @@ public class StatsService
     public async Task SendStatsAsync()
     {
         CancellationToken token;
-        try
+        lock (CtsLock)
         {
-            if (GlobalCts.IsCancellationRequested)
-                return;
-
-            token = GlobalCts.Token;
-        }
-        catch (ObjectDisposedException)
-        {
-            return;
+            token = _globalCts.Token;
         }
 
         try

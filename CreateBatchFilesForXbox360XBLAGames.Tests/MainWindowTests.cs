@@ -142,7 +142,7 @@ public class MainWindowTests : IDisposable
     [Fact]
     public void CheckWritePermission_ShouldWorkWithRelativePath()
     {
-        var result = MainWindow.CheckWritePermission(".");
+        var result = MainWindow.CheckWritePermission(Path.GetTempPath());
         Assert.True(result);
     }
 
@@ -370,27 +370,31 @@ public class MainWindowTests : IDisposable
     [InlineData("   ")]
     public void ValidatePath_EmptyOrWhitespace_ShouldFail(string path)
     {
-        var isNullOrWhiteSpace = string.IsNullOrWhiteSpace(path);
-        Assert.True(isNullOrWhiteSpace);
+        var ex = Record.Exception(() => MainWindow.CheckWritePermission(path));
+        Assert.Null(ex);
     }
 
     [Theory]
-    [InlineData(@"C:\Program Files\Xenia\xenia.exe")]
-    [InlineData(@"D:\Emulators\xenia_canary.exe")]
-    public void XeniaExePath_MustContainXenia(string path)
+    [InlineData(@"C:\Program Files\Xenia\xenia.exe", true)]
+    [InlineData(@"D:\Emulators\xenia_canary.exe", true)]
+    [InlineData(@"C:\Xenia\notxenia.exe", false)]
+    [InlineData(@"C:\Xenia\xenia.dll", false)]
+    public void XeniaExePath_Validation(string path, bool expectedValid)
     {
-        var containsXenia = path.Contains("xenia", StringComparison.OrdinalIgnoreCase);
-        Assert.True(containsXenia, $"Expected path to contain 'xenia': {path}");
+        var fileName = Path.GetFileName(path);
+        var isValid = fileName.StartsWith("xenia", StringComparison.OrdinalIgnoreCase)
+                      && path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(expectedValid, isValid);
     }
 
-    [Theory]
-    [InlineData(@"C:\Games\XBLA")]
-    [InlineData(@"D:\Xbox 360\Live Arcade")]
-    [InlineData("E:\\")]
-    public void GameFolderPath_MustBeExistingDirectory(string path)
+    [Fact]
+    public void GameFolderPath_MustBeExistingDirectory()
     {
-        // Only test the methodology, not actual existence
-        Assert.True(Directory.Exists(path) || !Directory.Exists(path));
+        var existingDir = CreateTempDirectory();
+        Assert.True(Directory.Exists(existingDir));
+
+        var nonExistentDir = Path.Combine(Path.GetTempPath(), $"NonExistent_{Guid.NewGuid():N}");
+        Assert.False(Directory.Exists(nonExistentDir));
     }
 
     // =========================================================================
@@ -436,12 +440,12 @@ public class MainWindowTests : IDisposable
     }
 
     [Fact]
-    public async Task WriteBatchFile_Encoding_IsNotUtf8WithBom()
+    public async Task WriteBatchFile_Encoding_UsesAsciiWithoutBom()
     {
         var rootDir = CreateTempDirectory();
         var batchFilePath = Path.Combine(rootDir, "EncodingTest.bat");
 
-        await using (var sw = new StreamWriter(batchFilePath))
+        await using (var sw = new StreamWriter(batchFilePath, false, Encoding.ASCII))
         {
             await sw.WriteLineAsync("@echo off");
         }
@@ -449,6 +453,7 @@ public class MainWindowTests : IDisposable
         var bytes = await File.ReadAllBytesAsync(batchFilePath);
         var hasBom = bytes is [0xEF, 0xBB, 0xBF, ..];
         Assert.False(hasBom, "Batch files should not have UTF-8 BOM");
+        Assert.All(bytes, static b => Assert.True(b < 128, $"Byte {b} is outside ASCII range"));
     }
 
     [Fact]

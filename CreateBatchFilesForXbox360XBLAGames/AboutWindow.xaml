@@ -19,25 +19,25 @@
         <!-- Logo Section -->
         <Border Grid.Row="0" Style="{StaticResource CardBorder}">
             <StackPanel HorizontalAlignment="Center">
-                <Image Width="130" Height="130" Source="pack://application:,,,/images/logo.png"/>
+                <Image Width="130" Height="130" Source="pack://application:,,,/images/logo.png" ToolTip="Batch File Creator for Xbox 360 XBLA Games logo"/>
             </StackPanel>
         </Border>
 
         <!-- Title & Version Section -->
         <Border Grid.Row="1" Style="{StaticResource CardBorder}">
             <StackPanel>
-                <TextBlock Style="{StaticResource AboutTitleStyle}" Text="Batch File Creator for Xbox 360 XBLA Games"/>
-                <TextBlock x:Name="AppVersionTextBlock" Margin="0,8,0,0" Text="" Style="{StaticResource AboutSubtitleStyle}" Foreground="{StaticResource PrimaryAccentBrush}"/>
+                <TextBlock Style="{StaticResource AboutTitleStyle}" Text="Batch File Creator for Xbox 360 XBLA Games" ToolTip="Batch File Creator for Xbox 360 XBLA Games"/>
+                <TextBlock x:Name="AppVersionTextBlock" Margin="0,8,0,0" Text="" Style="{StaticResource AboutSubtitleStyle}" Foreground="{StaticResource PrimaryAccentBrush}" ToolTip="Current application version"/>
             </StackPanel>
         </Border>
 
         <!-- Description Section -->
         <Border Grid.Row="2" Style="{StaticResource CardBorder}">
             <StackPanel>
-                <TextBlock Style="{StaticResource AboutSectionHeaderStyle}" Text="Description" Margin="0,0,0,10"/>
-                <TextBlock x:Name="DescriptionTextBlock" Style="{StaticResource AboutBodyTextStyle}" Text="A simple utility to create batch files for launching your Xbox 360 XBLA games with the Xenia emulator." LineHeight="20"/>
+                <TextBlock Style="{StaticResource AboutSectionHeaderStyle}" Text="Description" Margin="0,0,0,10" ToolTip="Application description"/>
+                <TextBlock x:Name="DescriptionTextBlock" Style="{StaticResource AboutBodyTextStyle}" Text="A simple utility to create batch files for launching your Xbox 360 XBLA games with the Xenia emulator." LineHeight="20" ToolTip="A simple utility to create batch files for launching your Xbox 360 XBLA games with the Xenia emulator"/>
                 <TextBlock Margin="0,15,0,0">
-                    <Hyperlink NavigateUri="https://www.purelogiccode.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{StaticResource LinkTextBrush}" TextDecorations="Underline">
+                    <Hyperlink NavigateUri="https://www.purelogiccode.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{StaticResource LinkTextBrush}" TextDecorations="Underline" ToolTip="Visit Pure Logic Code website in your default browser">
                         https://www.purelogiccode.com
                     </Hyperlink>
                 </TextBlock>
@@ -46,7 +46,7 @@
 
         <!-- Close Button Section -->
         <StackPanel Grid.Row="4" HorizontalAlignment="Center">
-            <Button Click="CloseButton_Click" Content="Close" Style="{StaticResource ActionButtonStyle}"/>
+            <Button Click="CloseButton_Click" Content="Close" Style="{StaticResource ActionButtonStyle}" ToolTip="Close this window"/>
         </StackPanel>
     </Grid>
 </Window>

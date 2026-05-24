@@ -16,30 +16,37 @@ public partial class App
     // Bug Report API configuration (centralized here)
     private const string BugReportApiUrl = "https://www.purelogiccode.com/bugreport/api/send-bug-report";
     private const string BugReportApiKey = "hjh7yu6t56tyr540o9u8767676r5674534453235264c75b6t7ggghgg76trf564e";
-    private const string ApplicationName = "CreateBatchFilesForXbox360XBLAGames";
+    internal const string ApplicationName = "CreateBatchFilesForXbox360XBLAGames";
 
     // Stats API configuration
     private const string StatsApiUrl = "https://www.purelogiccode.com/ApplicationStats/stats";
+
+    // Update check configuration
+    private const string GitHubRepoOwner = "drpetersonfernandes";
+    private const string GitHubRepoName = "CreateBatchFilesForXbox360XBLAGames";
+
+    internal static readonly string ApplicationVersion =
+        Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.6.0";
 
     /// <summary>
     /// Provides a single, shared instance of the BugReportService for the entire application.
     /// </summary>
     public static BugReportService? BugReportService { get; private set; }
 
-    /// <summary>
-    /// Provides a single, shared instance of the StatsService for the entire application.
-    /// </summary>
     public static StatsService? StatsService { get; private set; }
+
+    public static UpdateService? UpdateService { get; private set; }
 
     public App()
     {
         // Initialize the single bug report service instance for the application.
-        var applicationVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.6.0";
-        BugReportService = new BugReportService(BugReportApiUrl, BugReportApiKey, ApplicationName, applicationVersion);
+        BugReportService = new BugReportService(BugReportApiUrl, BugReportApiKey, ApplicationName, ApplicationVersion);
 
         // Initialize the stats service and report application usage.
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
-        StatsService = new StatsService(StatsApiUrl, BugReportApiKey, ApplicationName, version);
+        StatsService = new StatsService(StatsApiUrl, BugReportApiKey, ApplicationName, ApplicationVersion);
+
+        // Initialize the update check service.
+        UpdateService = new UpdateService(GitHubRepoOwner, GitHubRepoName, ApplicationVersion);
 
         // Set up global exception handling
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -51,6 +58,7 @@ public partial class App
         {
             BugReportService.CancelAll();
             StatsService.CancelAll();
+            UpdateService.CancelAll();
         };
 
         // Fire and forget: track application usage on startup.
@@ -96,7 +104,6 @@ public partial class App
     {
         try
         {
-            var applicationVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.6.0";
             var environment = BuildEnvironmentDetails();
             var message = BuildExceptionReport(exception, source, environment);
             var stackTrace = exception.StackTrace;
@@ -104,7 +111,7 @@ public partial class App
             // Silently report the exception to our API using the shared service instance.
             if (BugReportService != null)
             {
-                await BugReportService.SendBugReportAsync(message, applicationVersion, environment, stackTrace);
+                await BugReportService.SendBugReportAsync(message, ApplicationVersion, environment, stackTrace);
             }
         }
         catch
@@ -118,7 +125,7 @@ public partial class App
         var sb = new StringBuilder();
         sb.AppendLine(CultureInfo.InvariantCulture, $"Date: {DateTime.Now}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"Application Name: {ApplicationName}");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"Application Version: {Assembly.GetExecutingAssembly().GetName().Version}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"Application Version: {ApplicationVersion}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"OS Version: {Environment.OSVersion}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"Architecture: {RuntimeInformation.ProcessArchitecture}");
         sb.AppendLine(CultureInfo.InvariantCulture, $"Bitness: {(Environment.Is64BitProcess ? "64-bit" : "32-bit")}");

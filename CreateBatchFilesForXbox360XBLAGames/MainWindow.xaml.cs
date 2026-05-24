@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using Microsoft.Win32;
@@ -161,7 +160,7 @@ public partial class MainWindow
 
             try
             {
-                await CreateBatchFilesForXboxXblaGamesAsync(rootFolder, xeniaExePath);
+                await CreateBatchFilesForXbox360XblaGamesAsync(rootFolder, xeniaExePath);
             }
             catch (Exception ex)
             {
@@ -200,7 +199,7 @@ public partial class MainWindow
         return ofd.ShowDialog() == true ? ofd.FileName : null;
     }
 
-    private async Task CreateBatchFilesForXboxXblaGamesAsync(string rootFolder, string xeniaExePath)
+    private async Task CreateBatchFilesForXbox360XblaGamesAsync(string rootFolder, string xeniaExePath)
     {
         try
         {
@@ -380,51 +379,22 @@ public partial class MainWindow
 
         try
         {
-            var assemblyName = GetType().Assembly.GetName();
-            var applicationVersion = assemblyName.Version?.ToString() ?? "1.6.0";
-
-            var environment = new StringBuilder();
-            environment.AppendLine(CultureInfo.InvariantCulture, $"Date: {DateTime.Now}");
-            environment.AppendLine(CultureInfo.InvariantCulture, $"Application Name: {assemblyName.Name}");
-            environment.AppendLine(CultureInfo.InvariantCulture, $"Application Version: {applicationVersion}");
-            environment.AppendLine(CultureInfo.InvariantCulture, $"OS Version: {Environment.OSVersion}");
-            environment.AppendLine(CultureInfo.InvariantCulture, $"Architecture: {RuntimeInformation.ProcessArchitecture}");
-            environment.AppendLine(CultureInfo.InvariantCulture, $"Bitness: {(Environment.Is64BitProcess ? "64-bit" : "32-bit")}");
-            environment.AppendLine(CultureInfo.InvariantCulture, $"Windows Version: {RuntimeInformation.OSDescription}");
-            environment.AppendLine(CultureInfo.InvariantCulture, $"Processor Count: {Environment.ProcessorCount}");
-            environment.AppendLine(CultureInfo.InvariantCulture, $"Base Directory: {AppContext.BaseDirectory}");
-            environment.AppendLine(CultureInfo.InvariantCulture, $"Temp Path: {Path.GetTempPath()}");
-            var environmentStr = environment.ToString();
+            var environmentStr = App.BuildEnvironmentDetails();
+            var stackTrace = exception?.StackTrace;
 
             var fullReport = new StringBuilder();
-            fullReport.AppendLine("=== Environment Details ===");
-            fullReport.Append(environmentStr);
-            fullReport.AppendLine();
-            fullReport.AppendLine("=== Error Details ===");
-            fullReport.AppendLine(message);
-            fullReport.AppendLine();
-
-            string? stackTrace = null;
-
             if (exception != null)
             {
-                stackTrace = exception.StackTrace;
-
-                fullReport.AppendLine("=== Exception Details ===");
-                fullReport.AppendLine(CultureInfo.InvariantCulture, $"Type: {exception.GetType().FullName}");
-                fullReport.AppendLine(CultureInfo.InvariantCulture, $"Message: {exception.Message}");
-                fullReport.AppendLine(CultureInfo.InvariantCulture, $"Source: {exception.Source}");
-                fullReport.AppendLine("Stack Trace:");
-                fullReport.AppendLine(exception.StackTrace);
-
-                if (exception.InnerException != null)
-                {
-                    fullReport.AppendLine("Inner Exception:");
-                    fullReport.AppendLine(CultureInfo.InvariantCulture, $"Type: {exception.InnerException.GetType().FullName}");
-                    fullReport.AppendLine(CultureInfo.InvariantCulture, $"Message: {exception.InnerException.Message}");
-                    fullReport.AppendLine("Stack Trace:");
-                    fullReport.AppendLine(exception.InnerException.StackTrace);
-                }
+                fullReport.Append(App.BuildExceptionReport(exception, message, environmentStr));
+            }
+            else
+            {
+                fullReport.AppendLine("=== Environment Details ===");
+                fullReport.Append(environmentStr);
+                fullReport.AppendLine();
+                fullReport.AppendLine("=== Error Details ===");
+                fullReport.AppendLine(message);
+                fullReport.AppendLine();
             }
 
             if (LogTextBox != null)
@@ -442,11 +412,11 @@ public partial class MainWindow
                 fullReport.AppendLine().AppendLine("=== Configuration ===").AppendLine(CultureInfo.InvariantCulture, $"Xenia Path: {xeniaPath}").AppendLine(CultureInfo.InvariantCulture, $"Game Folder Path: {gameFolderPath}");
             }
 
-            await App.BugReportService.SendBugReportAsync(fullReport.ToString(), applicationVersion, environmentStr, stackTrace);
+            await App.BugReportService.SendBugReportAsync(fullReport.ToString(), App.ApplicationVersion, environmentStr, stackTrace);
         }
         catch
         {
-            // Silently fail if error reporting itself fails
+            // ignored
         }
     }
 
@@ -470,3 +440,4 @@ public partial class MainWindow
         }
     }
 }
+

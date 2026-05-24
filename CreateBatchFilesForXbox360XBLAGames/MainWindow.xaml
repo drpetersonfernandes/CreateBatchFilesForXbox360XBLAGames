@@ -21,9 +21,9 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Batch File Creator for Xbox 360 XBLA Games" Style="{StaticResource HeaderTitleStyle}" Margin="0,0,30,0"/>
+                <TextBlock Grid.Column="0" Text="Batch File Creator for Xbox 360 XBLA Games" Style="{StaticResource HeaderTitleStyle}" Margin="0,0,30,0" ToolTip="Batch File Creator for Xbox 360 XBLA Games"/>
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <Button Click="AboutMenuItem_Click" Style="{StaticResource ActionButtonStyle}" Background="{StaticResource AboutButtonBrush}">
+                    <Button Click="AboutMenuItem_Click" Style="{StaticResource ActionButtonStyle}" Background="{StaticResource AboutButtonBrush}" ToolTip="View application information and version">
                         <Button.Content>
                             <StackPanel Orientation="Horizontal">
                                 <Image Source="pack://application:,,,/images/about.png" Width="16" Height="16" Margin="0,0,5,0"/>
@@ -31,7 +31,7 @@
                             </StackPanel>
                         </Button.Content>
                     </Button>
-                    <Button Click="ExitMenuItem_Click" Style="{StaticResource ActionButtonStyle}" Background="{StaticResource ExitButtonBrush}">
+                    <Button Click="ExitMenuItem_Click" Style="{StaticResource ActionButtonStyle}" Background="{StaticResource ExitButtonBrush}" ToolTip="Close the application">
                         <Button.Content>
                             <StackPanel Orientation="Horizontal">
                                 <Image Source="pack://application:,,,/images/exit.png" Width="16" Height="16" Margin="0,0,5,0"/>
@@ -61,9 +61,9 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="Xenia Path:" VerticalAlignment="Center"/>
-                        <TextBox x:Name="XeniaPathTextBox" Grid.Column="1" Margin="5,0" IsReadOnly="True"/>
-                        <Button x:Name="BrowseXeniaButton" Grid.Column="2" Content="Browse" Click="BrowseXeniaButton_ClickAsync" Style="{StaticResource ActionButtonStyle}"/>
+                        <Label Content="Xenia Path:" VerticalAlignment="Center" ToolTip="Path to the Xenia emulator executable (xenia.exe)"/>
+                        <TextBox x:Name="XeniaPathTextBox" Grid.Column="1" Margin="5,0" IsReadOnly="True" ToolTip="Selected Xenia emulator executable path"/>
+                        <Button x:Name="BrowseXeniaButton" Grid.Column="2" Content="Browse" Click="BrowseXeniaButton_ClickAsync" Style="{StaticResource ActionButtonStyle}" ToolTip="Browse to locate the Xenia emulator executable (xenia.exe)"/>
                     </Grid>
 
                     <!-- Game Folder Selection -->
@@ -73,19 +73,20 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="Games Folder:" VerticalAlignment="Center"/>
-                        <TextBox x:Name="GameFolderTextBox" Grid.Column="1" Margin="5,0" IsReadOnly="True"/>
-                        <Button x:Name="BrowseFolderButton" Grid.Column="2" Content="Browse" Click="BrowseFolderButton_ClickAsync" Style="{StaticResource ActionButtonStyle}"/>
+                        <Label Content="Games Folder:" VerticalAlignment="Center" ToolTip="Root folder containing your Xbox 360 XBLA game directories"/>
+                        <TextBox x:Name="GameFolderTextBox" Grid.Column="1" Margin="5,0" IsReadOnly="True" ToolTip="Selected games root folder path"/>
+                        <Button x:Name="BrowseFolderButton" Grid.Column="2" Content="Browse" Click="BrowseFolderButton_ClickAsync" Style="{StaticResource ActionButtonStyle}" ToolTip="Browse to select the root folder containing your XBLA games"/>
                     </Grid>
 
                     <!-- Create Batch Files Button -->
                     <Button x:Name="CreateBatchFilesButton" Grid.Row="2" Content="Create Batch Files" Click="CreateBatchFilesButton_ClickAsync" 
-                            Style="{StaticResource StartButtonStyle}" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
+                            Style="{StaticResource StartButtonStyle}" HorizontalAlignment="Stretch" Margin="0,0,0,10" ToolTip="Generate batch files for all XBLA games found in the selected folder"/>
 
                     <!-- Log TextBox -->
                     <Border Grid.Row="3" BorderBrush="{StaticResource TerminalBorderBrush}" BorderThickness="2" CornerRadius="4" Background="{StaticResource TerminalBackgroundBrush}">
                         <TextBox x:Name="LogTextBox"
-                                 Style="{StaticResource TerminalLogTextBoxWithGlow}"/>
+                                 Style="{StaticResource TerminalLogTextBoxWithGlow}"
+                                 ToolTip="Operation log output showing batch file creation progress"/>
                     </Border>
                 </Grid>
             </Border>
@@ -93,8 +94,8 @@
 
         <!-- Status Bar -->
         <StatusBar Grid.Row="2" Background="{StaticResource StatusBarBackgroundBrush}" Padding="5">
-            <StatusBarItem>
-                <TextBlock x:Name="StatusBarMessage" Text="Ready" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <StatusBarItem>
+                <TextBlock x:Name="StatusBarMessage" Text="Ready" Foreground="{StaticResource TextSecondaryBrush}" ToolTip="Current application status"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

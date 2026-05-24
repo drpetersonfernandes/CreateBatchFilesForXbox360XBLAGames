@@ -3,3 +3,12 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.DotSettings.user
+
+# JetBrains Rider
+.idea/

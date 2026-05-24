@@ -1,9 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows;
 using System.Windows.Navigation;
 
@@ -20,8 +15,7 @@ public partial class AboutWindow
 
     internal static string GetApplicationVersion()
     {
-        var version = Assembly.GetExecutingAssembly().GetName().Version;
-        return version?.ToString() ?? "Unknown";
+        return App.ApplicationVersion;
     }
 
     private void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -40,35 +34,10 @@ public partial class AboutWindow
             // Notify developer
             if (App.BugReportService != null)
             {
-                var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.6.0";
-                var env = new StringBuilder();
-                env.AppendLine(CultureInfo.InvariantCulture, $"Date: {DateTime.Now}");
-                env.AppendLine("Application Name: CreateBatchFilesForXbox360XBLAGames");
-                env.AppendLine(CultureInfo.InvariantCulture, $"Application Version: {version}");
-                env.AppendLine(CultureInfo.InvariantCulture, $"OS Version: {Environment.OSVersion}");
-                env.AppendLine(CultureInfo.InvariantCulture, $"Architecture: {RuntimeInformation.ProcessArchitecture}");
-                env.AppendLine(CultureInfo.InvariantCulture, $"Bitness: {(Environment.Is64BitProcess ? "64-bit" : "32-bit")}");
-                env.AppendLine(CultureInfo.InvariantCulture, $"Windows Version: {RuntimeInformation.OSDescription}");
-                env.AppendLine(CultureInfo.InvariantCulture, $"Processor Count: {Environment.ProcessorCount}");
-                env.AppendLine(CultureInfo.InvariantCulture, $"Base Directory: {AppContext.BaseDirectory}");
-                env.AppendLine(CultureInfo.InvariantCulture, $"Temp Path: {Path.GetTempPath()}");
-                var environment = env.ToString();
+                var environment = App.BuildEnvironmentDetails();
+                var report = App.BuildExceptionReport(ex, $"Error opening URL: {e.Uri.AbsoluteUri}", environment);
 
-                var report = new StringBuilder();
-                report.AppendLine("=== Environment Details ===");
-                report.Append(environment);
-                report.AppendLine();
-                report.AppendLine("=== Error Details ===");
-                report.AppendLine(CultureInfo.InvariantCulture, $"Error opening URL: {e.Uri.AbsoluteUri}");
-                report.AppendLine();
-                report.AppendLine("=== Exception Details ===");
-                report.AppendLine(CultureInfo.InvariantCulture, $"Type: {ex.GetType().FullName}");
-                report.AppendLine(CultureInfo.InvariantCulture, $"Message: {ex.Message}");
-                report.AppendLine(CultureInfo.InvariantCulture, $"Source: {ex.Source}");
-                report.AppendLine("Stack Trace:");
-                report.AppendLine(ex.StackTrace);
-
-                _ = App.BugReportService.SendBugReportAsync(report.ToString(), version, environment, ex.StackTrace);
+                App.BugReportService.SendBugReportAsync(report, App.ApplicationVersion, environment, ex.StackTrace).FireAndForget();
             }
 
             // Notify user

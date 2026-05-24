@@ -22,7 +22,7 @@ public class AboutWindowTests
     public void GetApplicationVersion_ShouldMatchAssemblyVersion()
     {
         var assembly = Assembly.GetAssembly(typeof(App))!;
-        var expectedVersion = assembly.GetName().Version?.ToString();
+        var expectedVersion = assembly.GetName().Version?.ToString(3);
         var actualVersion = AboutWindow.GetApplicationVersion();
 
         Assert.Equal(expectedVersion, actualVersion);
@@ -63,7 +63,7 @@ public class AboutWindowTests
         Assert.NotNull(assemblyName);
         Assert.NotNull(assemblyName.Version);
 
-        var expected = assemblyName.Version!.ToString();
+        var expected = assemblyName.Version!.ToString(3);
         var actual = AboutWindow.GetApplicationVersion();
 
         Assert.Equal(expected, actual);

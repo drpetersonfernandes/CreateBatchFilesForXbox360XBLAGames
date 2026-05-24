@@ -210,15 +210,20 @@ public class StatsServiceTests
     }
 
     [Fact]
-    public void CancelAll_ShouldCancelGlobalToken()
+    public void CancelAll_ShouldReplaceGlobalCts()
     {
         ResetGlobalCts();
 
+        var ctsField = typeof(StatsService).GetField("_globalCts", BindingFlags.NonPublic | BindingFlags.Static);
+        var oldCts = ctsField?.GetValue(null) as CancellationTokenSource;
+
         StatsService.CancelAll();
 
-        var ctsField = typeof(StatsService).GetField("_globalCts", BindingFlags.NonPublic | BindingFlags.Static);
-        var cts = ctsField?.GetValue(null) as CancellationTokenSource;
-        Assert.True(cts?.IsCancellationRequested ?? false);
+        var newCts = ctsField?.GetValue(null) as CancellationTokenSource;
+        Assert.NotNull(oldCts);
+        Assert.NotNull(newCts);
+        Assert.NotSame(oldCts, newCts);
+        Assert.False(newCts.IsCancellationRequested);
 
         ResetGlobalCts();
     }
@@ -237,7 +242,7 @@ public class StatsServiceTests
     }
 
     [Fact]
-    public async Task CancelAll_ShouldPreventSubsequentRequests()
+    public async Task CancelAll_ShouldAllowSubsequentRequests()
     {
         ResetGlobalCts();
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
@@ -248,7 +253,7 @@ public class StatsServiceTests
 
         handlerMock.Protected().Verify(
             "SendAsync",
-            Times.Never(),
+            Times.Once(),
             ItExpr.IsAny<HttpRequestMessage>(),
             ItExpr.IsAny<CancellationToken>());
 

@@ -16,7 +16,8 @@ public class BugReportService
         Timeout = TimeSpan.FromSeconds(5)
     };
 
-    private static readonly CancellationTokenSource GlobalCts = new();
+    private static CancellationTokenSource _globalCts = new();
+    private static readonly object CtsLock = new();
 
     private readonly string _apiUrl;
     private readonly string _apiKey;
@@ -32,14 +33,29 @@ public class BugReportService
     }
 
     /// <summary>
-    /// Cancels all pending HTTP requests and prevents new ones from starting.
-    /// Call this when the application is shutting down.
+    /// Cancels all in-flight HTTP requests. New requests are immediately allowed
+    /// via a fresh cancellation token, so the service is never permanently disabled.
     /// </summary>
     public static void CancelAll()
     {
+        CancellationTokenSource oldCts;
+        lock (CtsLock)
+        {
+            oldCts = _globalCts;
+            _globalCts = new CancellationTokenSource();
+        }
+
         try
         {
-            GlobalCts.Cancel();
+            oldCts.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+
+        try
+        {
+            oldCts.Dispose();
         }
         catch (ObjectDisposedException)
         {
@@ -56,16 +72,9 @@ public class BugReportService
     public async Task SendBugReportAsync(string message, string? version = null, string? environment = null, string? stackTrace = null)
     {
         CancellationToken token;
-        try
+        lock (CtsLock)
         {
-            if (GlobalCts.IsCancellationRequested)
-                return;
-
-            token = GlobalCts.Token;
-        }
-        catch (ObjectDisposedException)
-        {
-            return;
+            token = _globalCts.Token;
         }
 
         try

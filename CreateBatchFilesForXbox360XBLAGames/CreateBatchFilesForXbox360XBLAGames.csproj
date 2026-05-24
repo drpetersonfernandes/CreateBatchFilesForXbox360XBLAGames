@@ -23,7 +23,6 @@
     <Resource Include="icon\icon.png" />
     <Resource Include="images\about.png" />
     <Resource Include="images\exit.png" />
-    <None Remove="images\logo.png" />
     <Resource Include="images\logo.png" />
   </ItemGroup>
 </Project>

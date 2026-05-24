@@ -239,15 +239,20 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public void CancelAll_ShouldCancelGlobalToken()
+    public void CancelAll_ShouldReplaceGlobalCts()
     {
         ResetGlobalCts();
 
+        var ctsField = typeof(BugReportService).GetField("_globalCts", BindingFlags.NonPublic | BindingFlags.Static);
+        var oldCts = ctsField?.GetValue(null) as CancellationTokenSource;
+
         BugReportService.CancelAll();
 
-        var ctsField = typeof(BugReportService).GetField("_globalCts", BindingFlags.NonPublic | BindingFlags.Static);
-        var cts = ctsField?.GetValue(null) as CancellationTokenSource;
-        Assert.True(cts?.IsCancellationRequested ?? false);
+        var newCts = ctsField?.GetValue(null) as CancellationTokenSource;
+        Assert.NotNull(oldCts);
+        Assert.NotNull(newCts);
+        Assert.NotSame(oldCts, newCts);
+        Assert.False(newCts.IsCancellationRequested);
 
         ResetGlobalCts();
     }
@@ -266,18 +271,18 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public async Task CancelAll_ShouldPreventSubsequentSendRequests()
+    public async Task CancelAll_ShouldAllowSubsequentRequests()
     {
         ResetGlobalCts();
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         BugReportService.CancelAll();
-        await service.SendBugReportAsync("Should not send");
+        await service.SendBugReportAsync("Should send after reset");
 
         handlerMock.Protected().Verify(
             "SendAsync",
-            Times.Never(),
+            Times.Once(),
             ItExpr.IsAny<HttpRequestMessage>(),
             ItExpr.IsAny<CancellationToken>());
 
