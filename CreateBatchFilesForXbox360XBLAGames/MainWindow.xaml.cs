@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -414,9 +415,9 @@ public partial class MainWindow
 
             await App.BugReportService.SendBugReportAsync(fullReport.ToString(), App.ApplicationVersion, environmentStr, stackTrace);
         }
-        catch
+        catch (Exception ex)
         {
-            // ignored
+            Trace.WriteLine($"[MainWindow] ReportBugAsync failed: {ex}");
         }
     }
 

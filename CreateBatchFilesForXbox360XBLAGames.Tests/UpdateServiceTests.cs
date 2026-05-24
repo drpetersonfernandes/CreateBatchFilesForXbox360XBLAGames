@@ -354,7 +354,7 @@ public class UpdateServiceTests
     {
         ResetGlobalCts();
 
-        var ctsField = typeof(UpdateService).GetField("GlobalCts", BindingFlags.NonPublic | BindingFlags.Static);
+        var ctsField = typeof(UpdateService).GetField("_globalCts", BindingFlags.NonPublic | BindingFlags.Static);
         var oldCts = ctsField?.GetValue(null) as CancellationTokenSource;
 
         UpdateService.CancelAll();
@@ -624,13 +624,14 @@ public class UpdateServiceTests
 
     private static void SetStaticHttpClient(HttpClient httpClient)
     {
+        httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("CreateBatchFilesForXbox360XBLAGames");
         var field = typeof(UpdateService).GetField("HttpClient", BindingFlags.NonPublic | BindingFlags.Static);
         field?.SetValue(null, httpClient);
     }
 
     private static void ResetGlobalCts()
     {
-        var ctsField = typeof(UpdateService).GetField("GlobalCts", BindingFlags.NonPublic | BindingFlags.Static);
+        var ctsField = typeof(UpdateService).GetField("_globalCts", BindingFlags.NonPublic | BindingFlags.Static);
         var oldCts = ctsField?.GetValue(null) as CancellationTokenSource;
         try
         {

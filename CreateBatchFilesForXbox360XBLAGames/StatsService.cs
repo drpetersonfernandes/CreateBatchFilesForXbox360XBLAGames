@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Net.Http.Headers;
@@ -82,9 +83,9 @@ public class StatsService
         catch (OperationCanceledException)
         {
         }
-        catch
+        catch (Exception ex)
         {
-            // ignored
+            Trace.WriteLine($"[StatsService] SendStatsAsync failed: {ex}");
         }
     }
 }

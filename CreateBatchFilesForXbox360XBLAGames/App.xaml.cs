@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -74,9 +75,9 @@ public partial class App
                 await StatsService.SendStatsAsync();
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // ignored
+            Trace.WriteLine($"[App] TrackApplicationUsageAsync failed: {ex}");
         }
     }
 
@@ -84,23 +85,23 @@ public partial class App
     {
         if (e.ExceptionObject is Exception exception)
         {
-            ReportExceptionAsync(exception, "AppDomain.UnhandledException");
+            _ = ReportExceptionAsync(exception, "AppDomain.UnhandledException");
         }
     }
 
     private static void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        ReportExceptionAsync(e.Exception, "Application.DispatcherUnhandledException");
+        _ = ReportExceptionAsync(e.Exception, "Application.DispatcherUnhandledException");
         e.Handled = true;
     }
 
     private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
-        ReportExceptionAsync(e.Exception, "TaskScheduler.UnobservedTaskException");
+        _ = ReportExceptionAsync(e.Exception, "TaskScheduler.UnobservedTaskException");
         e.SetObserved();
     }
 
-    private static async void ReportExceptionAsync(Exception exception, string source)
+    private static async Task ReportExceptionAsync(Exception exception, string source)
     {
         try
         {
@@ -114,9 +115,9 @@ public partial class App
                 await BugReportService.SendBugReportAsync(message, ApplicationVersion, environment, stackTrace);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Silently ignore any errors in the reporting process
+            Trace.WriteLine($"[App] ReportExceptionAsync failed: {ex}");
         }
     }
 

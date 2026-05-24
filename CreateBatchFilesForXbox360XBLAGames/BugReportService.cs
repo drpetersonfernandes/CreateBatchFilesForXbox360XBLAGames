@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Json;
 
@@ -97,9 +98,9 @@ public class BugReportService
         catch (OperationCanceledException)
         {
         }
-        catch
+        catch (Exception ex)
         {
-            // Silently fail if there's an exception
+            Trace.WriteLine($"[BugReportService] SendBugReportAsync failed: {ex}");
         }
     }
 }

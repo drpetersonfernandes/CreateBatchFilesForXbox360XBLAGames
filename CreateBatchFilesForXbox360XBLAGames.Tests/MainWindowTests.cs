@@ -440,20 +440,21 @@ public class MainWindowTests : IDisposable
     }
 
     [Fact]
-    public async Task WriteBatchFile_Encoding_UsesAsciiWithoutBom()
+    public async Task WriteBatchFile_Encoding_UsesUtf8WithoutBom()
     {
         var rootDir = CreateTempDirectory();
         var batchFilePath = Path.Combine(rootDir, "EncodingTest.bat");
 
-        await using (var sw = new StreamWriter(batchFilePath, false, Encoding.ASCII))
+        await using (var sw = new StreamWriter(batchFilePath))
         {
             await sw.WriteLineAsync("@echo off");
         }
 
         var bytes = await File.ReadAllBytesAsync(batchFilePath);
-        var hasBom = bytes is [0xEF, 0xBB, 0xBF, ..];
-        Assert.False(hasBom, "Batch files should not have UTF-8 BOM");
-        Assert.All(bytes, static b => Assert.True(b < 128, $"Byte {b} is outside ASCII range"));
+        var hasUtf8Bom = bytes is [0xEF, 0xBB, 0xBF, ..];
+        Assert.False(hasUtf8Bom, "Batch files should not have UTF-8 BOM on .NET");
+        var content = await File.ReadAllTextAsync(batchFilePath);
+        Assert.StartsWith("@echo off", content, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
@@ -29,6 +30,11 @@ public class UpdateService
     {
         Timeout = TimeSpan.FromSeconds(30)
     };
+
+    static UpdateService()
+    {
+        HttpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("CreateBatchFilesForXbox360XBLAGames");
+    }
 
     private static CancellationTokenSource _globalCts = new();
     private static readonly object CtsLock = new();
@@ -81,7 +87,6 @@ public class UpdateService
         try
         {
             var url = $"https://api.github.com/repos/{_repoOwner}/{_repoName}/releases/latest";
-            HttpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("CreateBatchFilesForXbox360XBLAGames");
 
             var release = await HttpClient.GetFromJsonAsync<GitHubRelease>(url, token);
 
@@ -104,9 +109,9 @@ public class UpdateService
         catch (OperationCanceledException)
         {
         }
-        catch
+        catch (Exception ex)
         {
-            // ignored
+            Trace.WriteLine($"[UpdateService] CheckForUpdateAsync failed: {ex}");
         }
 
         return null;
