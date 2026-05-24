@@ -16,14 +16,19 @@ Batch File Creator for Xbox 360 XBLA Games is a Windows application that provide
 - **Automatic Game Discovery**: Intelligently searches within each game's directory for the specific XBLA file structure (typically inside a `000D0000` subdirectory), with a robust fallback mechanism.
 - **User-Friendly Interface**: Designed for simplicity and ease of use.
 
+### User Interface
+- **Dark Theme**: A custom dark theme with terminal-style green log output for comfortable extended use.
+- **About Dialog**: Displays version information, description, and a link to the project website.
+
 ### Logging & Reporting
 - **Real-time Logging**: A detailed log window shows the progress of the operation, including which files are created, which folders are skipped, and any errors encountered.
 - **Status Bar**: Provides at-a-glance feedback on the application's current status.
-- **Silent Error Reporting**: Automatically reports unhandled exceptions and potential issues to the developer, helping to improve application stability without interrupting the user.
 
 ### Advanced Features
 - **Lightweight and Portable**: No installation required; just run the executable.
 - **Robust Batch Files**: Generated batch files change to the Xenia directory before launch, preventing issues with logs and configuration files.
+- **Automatic Update Checking**: Checks for new releases on GitHub and notifies you when an update is available.
+- **Write Permission Validation**: Verifies write access to the games folder before generating batch files, providing clear error messages if permissions are insufficient.
 
 ## Supported Formats
 
@@ -37,6 +42,7 @@ Batch File Creator for Xbox 360 XBLA Games is a Windows application that provide
 ## Requirements
 
 - **Runtime**: [.NET 10.0 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
+- **OS**: Windows 7 or later
 - **Dependencies**: A working copy of the **Xenia emulator** (`xenia.exe`).
 
 ## Installation
