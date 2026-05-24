@@ -25,12 +25,13 @@ public class UpdateCheckResult
 
 public class UpdateService
 {
-    internal static readonly HttpClient HttpClient = new()
+    internal static HttpClient HttpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(30)
     };
 
-    private static readonly CancellationTokenSource GlobalCts = new();
+    private static CancellationTokenSource _globalCts = new();
+    private static readonly object CtsLock = new();
 
     private readonly string _repoOwner;
     private readonly string _repoName;
@@ -45,9 +46,24 @@ public class UpdateService
 
     public static void CancelAll()
     {
+        CancellationTokenSource oldCts;
+        lock (CtsLock)
+        {
+            oldCts = _globalCts;
+            _globalCts = new CancellationTokenSource();
+        }
+
         try
         {
-            GlobalCts.Cancel();
+            oldCts.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+
+        try
+        {
+            oldCts.Dispose();
         }
         catch (ObjectDisposedException)
         {
@@ -57,16 +73,9 @@ public class UpdateService
     public async Task<UpdateCheckResult?> CheckForUpdateAsync()
     {
         CancellationToken token;
-        try
+        lock (CtsLock)
         {
-            if (GlobalCts.IsCancellationRequested)
-                return null;
-
-            token = GlobalCts.Token;
-        }
-        catch (ObjectDisposedException)
-        {
-            return null;
+            token = _globalCts.Token;
         }
 
         try

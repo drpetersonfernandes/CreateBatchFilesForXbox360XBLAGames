@@ -10,7 +10,7 @@ namespace CreateBatchFilesForXbox360XBLAGames;
 /// </summary>
 public class StatsService
 {
-    internal static readonly HttpClient HttpClient = new()
+    internal static HttpClient HttpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(5)
     };

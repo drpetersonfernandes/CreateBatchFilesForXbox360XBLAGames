@@ -354,7 +354,7 @@ public class UpdateServiceTests
     {
         ResetGlobalCts();
 
-        var ctsField = typeof(UpdateService).GetField("_globalCts", BindingFlags.NonPublic | BindingFlags.Static);
+        var ctsField = typeof(UpdateService).GetField("GlobalCts", BindingFlags.NonPublic | BindingFlags.Static);
         var oldCts = ctsField?.GetValue(null) as CancellationTokenSource;
 
         UpdateService.CancelAll();
@@ -630,7 +630,7 @@ public class UpdateServiceTests
 
     private static void ResetGlobalCts()
     {
-        var ctsField = typeof(UpdateService).GetField("_globalCts", BindingFlags.NonPublic | BindingFlags.Static);
+        var ctsField = typeof(UpdateService).GetField("GlobalCts", BindingFlags.NonPublic | BindingFlags.Static);
         var oldCts = ctsField?.GetValue(null) as CancellationTokenSource;
         try
         {

@@ -11,7 +11,7 @@ public class BugReportService
 {
     // Use a single, static HttpClient instance for the application's lifetime
     // to prevent socket exhaustion and improve performance.
-    internal static readonly HttpClient HttpClient = new()
+    internal static HttpClient HttpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(5)
     };
