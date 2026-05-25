@@ -68,11 +68,11 @@ public class MainWindowTests : IDisposable
     }
 
     [Fact]
-    public void CheckWritePermission_ShouldReturnFalse_ForEmptyPath()
+    public void CheckWritePermission_ShouldNotThrow_ForEmptyPath()
     {
-        // Empty path resolves to current directory which is usually writable
-        _ = MainWindow.CheckWritePermission(string.Empty);
-        // Empty path behavior depends on environment; just verify no exception
+        // Empty path resolves to current directory; behavior is environment-dependent
+        var ex = Record.Exception(static () => MainWindow.CheckWritePermission(string.Empty));
+        Assert.Null(ex);
     }
 
     [Fact]
