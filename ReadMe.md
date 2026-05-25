@@ -8,6 +8,10 @@ Batch File Creator for Xbox 360 XBLA Games is a Windows application that provide
 
 ⭐ **If you find this tool useful, please give us a Star on GitHub!** ⭐
 
+<br>
+
+![System Selection](screenshot.png)
+
 ## Features
 
 ### Core Features
