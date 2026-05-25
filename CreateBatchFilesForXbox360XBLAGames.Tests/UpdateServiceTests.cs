@@ -591,6 +591,39 @@ public class UpdateServiceTests
         Assert.Null(result);
     }
 
+    [Fact]
+    public void NormalizeVersion_WithReleaseUnderscorePrefix_ShouldReturnVersionObject()
+    {
+        var result = UpdateService.NormalizeVersion("release_1.5.0");
+
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Major);
+        Assert.Equal(5, result.Minor);
+        Assert.Equal(0, result.Build);
+    }
+
+    [Fact]
+    public void NormalizeVersion_WithReleaseUnderscorePrefixAndV_ShouldReturnVersionObject()
+    {
+        var result = UpdateService.NormalizeVersion("release_v2.0.0");
+
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Major);
+        Assert.Equal(0, result.Minor);
+        Assert.Equal(0, result.Build);
+    }
+
+    [Fact]
+    public void NormalizeVersion_WithReleaseUnderscorePrefixCapitalR_ShouldReturnVersionObject()
+    {
+        var result = UpdateService.NormalizeVersion("Release_3.1.4");
+
+        Assert.NotNull(result);
+        Assert.Equal(3, result.Major);
+        Assert.Equal(1, result.Minor);
+        Assert.Equal(4, result.Build);
+    }
+
     private static Mock<HttpMessageHandler> CreateMockReleaseHandler(string tagName, string name, string htmlUrl)
     {
         var json = JsonSerializer.Serialize(new

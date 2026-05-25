@@ -23,6 +23,8 @@ public partial class MainWindow
         LogMessage("3. Click 'Create Batch Files' to generate the batch files");
         LogMessage("");
         UpdateStatusBarMessage("Ready");
+
+        Loaded += async (_, _) => await CheckForUpdatesAsync();
     }
 
     private void UpdateStatusBarMessage(string message)
@@ -175,6 +177,35 @@ public partial class MainWindow
         {
             await ReportBugAsync("Error creating batch files", ex);
             UpdateStatusBarMessage("An unexpected error occurred.");
+        }
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        if (App.UpdateService == null) return;
+
+        try
+        {
+            var result = await App.UpdateService.CheckForUpdateAsync();
+
+            if (result?.UpdateAvailable != true || string.IsNullOrEmpty(result.ReleaseUrl))
+                return;
+
+            var choice = MessageBox.Show(
+                this,
+                $"A new version ({result.LatestVersion}) is available.\n\nWould you like to visit the download page?",
+                "Update Available",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Information);
+
+            if (choice == MessageBoxResult.Yes)
+            {
+                Process.Start(new ProcessStartInfo(result.ReleaseUrl) { UseShellExecute = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[MainWindow] CheckForUpdatesAsync failed: {ex}");
         }
     }
 

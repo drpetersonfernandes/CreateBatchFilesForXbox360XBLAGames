@@ -122,7 +122,14 @@ public class UpdateService
         if (string.IsNullOrWhiteSpace(version))
             return null;
 
-        var trimmed = version.Trim().TrimStart('v', 'V').Trim();
+        var trimmed = version.Trim();
+
+        if (trimmed.StartsWith("release_", StringComparison.OrdinalIgnoreCase))
+        {
+            trimmed = trimmed["release_".Length..];
+        }
+
+        trimmed = trimmed.TrimStart('v', 'V').Trim();
 
         return Version.TryParse(trimmed, out var parsed) ? parsed : null;
     }

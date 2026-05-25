@@ -23,6 +23,49 @@ public partial class AboutWindow
         Close();
     }
 
+    private async void CheckForUpdatesButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (App.UpdateService == null) return;
+
+            var result = await App.UpdateService.CheckForUpdateAsync();
+
+            if (result?.UpdateAvailable == true && !string.IsNullOrEmpty(result.ReleaseUrl))
+            {
+                var choice = MessageBox.Show(
+                    this,
+                    $"A new version ({result.LatestVersion}) is available.\n\nWould you like to visit the download page?",
+                    "Update Available",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+
+                if (choice == MessageBoxResult.Yes)
+                {
+                    Process.Start(new ProcessStartInfo(result.ReleaseUrl) { UseShellExecute = true });
+                }
+            }
+            else
+            {
+                MessageBox.Show(
+                    this,
+                    "You are running the latest version.",
+                    "No Updates Available",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                this,
+                $"Failed to check for updates: {ex.Message}",
+                "Update Check Failed",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
         try
