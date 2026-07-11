@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using Serilog;
 
 namespace CreateBatchFilesForXbox360XBLAGames;
 
@@ -9,7 +9,8 @@ internal static class TaskExtensions
         task.ContinueWith(static t =>
         {
             var ex = t.Exception?.Flatten();
-            Debug.WriteLine($"[FireAndForget] Unobserved task exception: {ex}");
+            if (ex != null)
+                Log.Warning(ex, "Unobserved task exception");
         }, TaskContinuationOptions.OnlyOnFaulted);
     }
 }

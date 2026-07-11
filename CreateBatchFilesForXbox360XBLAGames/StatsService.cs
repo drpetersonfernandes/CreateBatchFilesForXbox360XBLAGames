@@ -1,14 +1,10 @@
-using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Net.Http.Headers;
+using Serilog;
 
 namespace CreateBatchFilesForXbox360XBLAGames;
 
-/// <summary>
-/// Service responsible for silently sending application usage statistics to the Stats API.
-/// This class is designed to be used as a singleton via the App class.
-/// </summary>
 public class StatsService
 {
     internal static HttpClient HttpClient = new()
@@ -41,21 +37,11 @@ public class StatsService
             _globalCts = new CancellationTokenSource();
         }
 
-        try
-        {
-            oldCts.Cancel();
-        }
-        catch (ObjectDisposedException)
-        {
-        }
+        try { oldCts.Cancel(); }
+        catch (ObjectDisposedException) { }
 
-        try
-        {
-            oldCts.Dispose();
-        }
-        catch (ObjectDisposedException)
-        {
-        }
+        try { oldCts.Dispose(); }
+        catch (ObjectDisposedException) { }
     }
 
     public async Task SendStatsAsync()
@@ -85,7 +71,7 @@ public class StatsService
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"[StatsService] SendStatsAsync failed: {ex}");
+            Log.Error(ex, "SendStatsAsync failed");
         }
     }
 }

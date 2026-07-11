@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Navigation;
+using Serilog;
 
 namespace CreateBatchFilesForXbox360XBLAGames;
 
@@ -57,6 +58,7 @@ public partial class AboutWindow
         }
         catch (Exception ex)
         {
+            Log.Error(ex, "Failed to check for updates from About window");
             MessageBox.Show(
                 this,
                 $"Failed to check for updates: {ex.Message}",
@@ -74,16 +76,7 @@ public partial class AboutWindow
         }
         catch (Exception ex)
         {
-            // Notify developer
-            if (App.BugReportService != null)
-            {
-                var environment = App.BuildEnvironmentDetails();
-                var report = App.BuildExceptionReport(ex, $"Error opening URL: {e.Uri.AbsoluteUri}", environment);
-
-                App.BugReportService.SendBugReportAsync(report, App.ApplicationVersion, environment, ex.StackTrace).FireAndForget();
-            }
-
-            // Notify user
+            Log.Error(ex, "Error opening URL: {Url}", e.Uri.AbsoluteUri);
             MessageBox.Show(this, $"Unable to open link: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally

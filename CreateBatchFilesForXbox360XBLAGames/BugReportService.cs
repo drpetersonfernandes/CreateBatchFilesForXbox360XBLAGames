@@ -4,14 +4,8 @@ using System.Net.Http.Json;
 
 namespace CreateBatchFilesForXbox360XBLAGames;
 
-/// <summary>
-/// Service responsible for silently sending bug reports to the BugReport API.
-/// This class is designed to be used as a singleton via the App class.
-/// </summary>
 public class BugReportService
 {
-    // Use a single, static HttpClient instance for the application's lifetime
-    // to prevent socket exhaustion and improve performance.
     internal static HttpClient HttpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(5)
@@ -33,10 +27,6 @@ public class BugReportService
         _applicationVersion = applicationVersion;
     }
 
-    /// <summary>
-    /// Cancels all in-flight HTTP requests. New requests are immediately allowed
-    /// via a fresh cancellation token, so the service is never permanently disabled.
-    /// </summary>
     public static void CancelAll()
     {
         CancellationTokenSource oldCts;
@@ -46,31 +36,14 @@ public class BugReportService
             _globalCts = new CancellationTokenSource();
         }
 
-        try
-        {
-            oldCts.Cancel();
-        }
-        catch (ObjectDisposedException)
-        {
-        }
+        try { oldCts.Cancel(); }
+        catch (ObjectDisposedException) { }
 
-        try
-        {
-            oldCts.Dispose();
-        }
-        catch (ObjectDisposedException)
-        {
-        }
+        try { oldCts.Dispose(); }
+        catch (ObjectDisposedException) { }
     }
 
-    /// <summary>
-    /// Silently sends a bug report to the API.
-    /// </summary>
-    /// <param name="message">The error message or bug report.</param>
-    /// <param name="version">Application version override.</param>
-    /// <param name="environment">Environment details string.</param>
-    /// <param name="stackTrace">Exception stack trace.</param>
-    public async Task SendBugReportAsync(string message, string? version = null, string? environment = null, string? stackTrace = null)
+    public static async Task SendAsync(string message, string applicationName, string version, string? environment, string? stackTrace)
     {
         CancellationToken token;
         lock (CtsLock)
@@ -83,15 +56,15 @@ public class BugReportService
             var payload = new
             {
                 message,
-                applicationName = _applicationName,
-                version = version ?? _applicationVersion,
+                applicationName,
+                version,
                 environment,
                 stackTrace
             };
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, _apiUrl);
+            using var request = new HttpRequestMessage(HttpMethod.Post, App.BugReportApiUrl);
             request.Content = JsonContent.Create(payload);
-            request.Headers.Add("X-API-KEY", _apiKey);
+            request.Headers.Add("X-API-KEY", App.BugReportApiKey);
 
             await HttpClient.SendAsync(request, token);
         }
@@ -100,7 +73,7 @@ public class BugReportService
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"[BugReportService] SendBugReportAsync failed: {ex}");
+            Trace.WriteLine($"[BugReportService] SendAsync failed: {ex}");
         }
     }
 }

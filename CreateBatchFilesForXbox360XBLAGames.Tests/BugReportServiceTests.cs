@@ -7,46 +7,8 @@ namespace CreateBatchFilesForXbox360XBLAGames.Tests;
 
 public class BugReportServiceTests
 {
-    private const string TestApiUrl = "https://test.example.com/api/report";
-    private const string TestApiKey = "test-api-key-12345";
     private const string TestAppName = "TestApp";
     private const string TestAppVersion = "2.0.0";
-
-    [Fact]
-    public void Constructor_ShouldStoreApiUrl()
-    {
-        var service = new BugReportService(TestApiUrl, TestApiKey, TestAppName, TestAppVersion);
-        var field = typeof(BugReportService).GetField("_apiUrl", BindingFlags.NonPublic | BindingFlags.Instance);
-        var value = field?.GetValue(service) as string;
-        Assert.Equal(TestApiUrl, value);
-    }
-
-    [Fact]
-    public void Constructor_ShouldStoreApiKey()
-    {
-        var service = new BugReportService(TestApiUrl, TestApiKey, TestAppName, TestAppVersion);
-        var field = typeof(BugReportService).GetField("_apiKey", BindingFlags.NonPublic | BindingFlags.Instance);
-        var value = field?.GetValue(service) as string;
-        Assert.Equal(TestApiKey, value);
-    }
-
-    [Fact]
-    public void Constructor_ShouldStoreApplicationName()
-    {
-        var service = new BugReportService(TestApiUrl, TestApiKey, TestAppName, TestAppVersion);
-        var field = typeof(BugReportService).GetField("_applicationName", BindingFlags.NonPublic | BindingFlags.Instance);
-        var value = field?.GetValue(service) as string;
-        Assert.Equal(TestAppName, value);
-    }
-
-    [Fact]
-    public void Constructor_ShouldStoreApplicationVersion()
-    {
-        var service = new BugReportService(TestApiUrl, TestApiKey, TestAppName, TestAppVersion);
-        var field = typeof(BugReportService).GetField("_applicationVersion", BindingFlags.NonPublic | BindingFlags.Instance);
-        var value = field?.GetValue(service) as string;
-        Assert.Equal(TestAppVersion, value);
-    }
 
     [Fact]
     public void HttpClient_ShouldHaveFiveSecondTimeout()
@@ -58,12 +20,12 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public async Task SendBugReportAsync_ShouldSendPostRequest()
+    public async Task SendAsync_ShouldSendPostRequest()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync("Test bug message");
+        await BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -73,42 +35,42 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public async Task SendBugReportAsync_ShouldSendToCorrectUrl()
+    public async Task SendAsync_ShouldSendToCorrectUrl()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync("Test bug message");
+        await BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
             Times.Once(),
-            ItExpr.Is<HttpRequestMessage>(static m => m.RequestUri != null && m.RequestUri.ToString() == TestApiUrl),
+            ItExpr.Is<HttpRequestMessage>(static m => m.RequestUri != null && m.RequestUri.ToString().Contains("send-bug-report")),
             ItExpr.IsAny<CancellationToken>());
     }
 
     [Fact]
-    public async Task SendBugReportAsync_ShouldSetApiKeyHeader()
+    public async Task SendAsync_ShouldSetApiKeyHeader()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync("Test bug message");
+        await BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
             Times.Once(),
-            ItExpr.Is<HttpRequestMessage>(static m => HasApiKeyHeader(m, TestApiKey)),
+            ItExpr.Is<HttpRequestMessage>(static m => HasApiKeyHeader(m)),
             ItExpr.IsAny<CancellationToken>());
     }
 
     [Fact]
-    public async Task SendBugReportAsync_ShouldSendJsonPayloadWithAllFields()
+    public async Task SendAsync_ShouldSendJsonPayloadWithAllFields()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync("Test message", "1.0.0", "Windows 10", "at StackTrace()");
+        await BugReportService.SendAsync("Test message", TestAppName, "1.0.0", "Windows 10", "at StackTrace()");
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -118,73 +80,66 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public async Task SendBugReportAsync_ShouldReturnEarlyWhenGlobalCtsIsCancelled()
+    public async Task SendAsync_ShouldReturnEarlyWhenGlobalCtsIsCancelled()
     {
         BugReportService.CancelAll();
-        var service = CreateServiceWithMockHandler(new Mock<HttpMessageHandler>().Object);
+        var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync("Test bug message");
+        await BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
 
         ResetGlobalCts();
     }
 
     [Fact]
-    public Task SendBugReportAsync_ShouldHandleOperationCanceledException()
+    public Task SendAsync_ShouldHandleOperationCanceledException()
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
             .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new OperationCanceledException());
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        return service.SendBugReportAsync("Test bug message");
-
-        // Should not throw
+        return BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
     }
 
     [Fact]
-    public Task SendBugReportAsync_ShouldHandleGeneralException()
+    public Task SendAsync_ShouldHandleGeneralException()
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
             .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Network error"));
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        return service.SendBugReportAsync("Test bug message");
-
-        // Should not throw
+        return BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
     }
 
     [Fact]
-    public Task SendBugReportAsync_ShouldHandleServerError()
+    public Task SendAsync_ShouldHandleServerError()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.InternalServerError, "Internal error");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        return service.SendBugReportAsync("Test bug message");
-
-        // Should not throw
+        return BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
     }
 
     [Fact]
-    public Task SendBugReportAsync_ShouldHandleNotFound()
+    public Task SendAsync_ShouldHandleNotFound()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.NotFound, "Not found");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        return service.SendBugReportAsync("Test bug message");
-
-        // Should not throw
+        return BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
     }
 
     [Fact]
-    public async Task SendBugReportAsync_WithEmptyMessage_ShouldStillSend()
+    public async Task SendAsync_WithEmptyMessage_ShouldStillSend()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync(string.Empty);
+        await BugReportService.SendAsync(string.Empty, TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -194,12 +149,12 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public async Task SendBugReportAsync_WithNullMessage_ShouldStillSend()
+    public async Task SendAsync_WithNullMessage_ShouldStillSend()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync(null!);
+        await BugReportService.SendAsync(null!, TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -209,12 +164,12 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public async Task SendBugReportAsync_WithAllOptionalParamsNull_ShouldUseDefaults()
+    public async Task SendAsync_WithAllOptionalParamsNull_ShouldUseDefaults()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync("Test message");
+        await BugReportService.SendAsync("Test message", TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -224,12 +179,12 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public async Task SendBugReportAsync_ShouldSetContentTypeHeader()
+    public async Task SendAsync_ShouldSetContentTypeHeader()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync("Test bug message");
+        await BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -266,7 +221,6 @@ public class BugReportServiceTests
         BugReportService.CancelAll();
         BugReportService.CancelAll();
 
-        // Should not throw
         ResetGlobalCts();
     }
 
@@ -275,10 +229,10 @@ public class BugReportServiceTests
     {
         ResetGlobalCts();
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
         BugReportService.CancelAll();
-        await service.SendBugReportAsync("Should send after reset");
+        await BugReportService.SendAsync("Should send after reset", TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -290,12 +244,12 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public async Task SendBugReportAsync_ShouldSendWithCancellationToken()
+    public async Task SendAsync_ShouldSendWithCancellationToken()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync("Test bug message");
+        await BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -305,12 +259,12 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public async Task SendBugReportAsync_WithMultilineMessage_ShouldSendCorrectly()
+    public async Task SendAsync_WithMultilineMessage_ShouldSendCorrectly()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync("Line 1\nLine 2\nLine 3");
+        await BugReportService.SendAsync("Line 1\nLine 2\nLine 3", TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -320,13 +274,13 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public async Task SendBugReportAsync_WithLongMessage_ShouldSendCorrectly()
+    public async Task SendAsync_WithLongMessage_ShouldSendCorrectly()
     {
         var longMessage = new string('A', 10000);
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync(longMessage);
+        await BugReportService.SendAsync(longMessage, TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -336,13 +290,13 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public async Task SendBugReportAsync_WithSpecialCharacters_ShouldSendCorrectly()
+    public async Task SendAsync_WithSpecialCharacters_ShouldSendCorrectly()
     {
         const string specialMessage = "Error: <html> & \"quotes\" 'single' /path\\file";
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync(specialMessage);
+        await BugReportService.SendAsync(specialMessage, TestAppName, TestAppVersion, null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -352,40 +306,36 @@ public class BugReportServiceTests
     }
 
     [Fact]
-    public Task SendBugReportAsync_ShouldHandleHttpRequestException()
+    public Task SendAsync_ShouldHandleHttpRequestException()
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
             .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new HttpRequestException("Connection refused"));
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        return service.SendBugReportAsync("Test bug message");
-
-        // Should not throw
+        return BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
     }
 
     [Fact]
-    public Task SendBugReportAsync_ShouldHandleTaskCanceledException()
+    public Task SendAsync_ShouldHandleTaskCanceledException()
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
             .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new TaskCanceledException());
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        return service.SendBugReportAsync("Test bug message");
-
-        // Should not throw
+        return BugReportService.SendAsync("Test bug message", TestAppName, TestAppVersion, null, null);
     }
 
     [Fact]
-    public async Task SendBugReportAsync_WithVersionOverride_ShouldUseProvidedVersion()
+    public async Task SendAsync_WithVersionOverride_ShouldUseProvidedVersion()
     {
         var handlerMock = CreateMockHttpHandler(HttpStatusCode.OK, "{}");
-        var service = CreateServiceWithMockHandler(handlerMock.Object);
+        SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
-        await service.SendBugReportAsync("Test", "3.0.0-custom");
+        await BugReportService.SendAsync("Test", TestAppName, "3.0.0-custom", null, null);
 
         handlerMock.Protected().Verify(
             "SendAsync",
@@ -407,12 +357,6 @@ public class BugReportServiceTests
         return handlerMock;
     }
 
-    private static BugReportService CreateServiceWithMockHandler(HttpMessageHandler handler)
-    {
-        SetStaticHttpClient(new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) });
-        return new BugReportService(TestApiUrl, TestApiKey, TestAppName, TestAppVersion);
-    }
-
     private static void SetStaticHttpClient(HttpClient httpClient)
     {
         var field = typeof(BugReportService).GetField("HttpClient", BindingFlags.NonPublic | BindingFlags.Static);
@@ -429,14 +373,13 @@ public class BugReportServiceTests
         }
         catch
         {
-            // ignored
         }
 
         ctsField?.SetValue(null, new CancellationTokenSource());
     }
 
-    private static bool HasApiKeyHeader(HttpRequestMessage m, string apiKey)
+    private static bool HasApiKeyHeader(HttpRequestMessage m)
     {
-        return m.Headers.TryGetValues("X-API-KEY", out var values) && values.Contains(apiKey);
+        return m.Headers.TryGetValues("X-API-KEY", out _);
     }
 }

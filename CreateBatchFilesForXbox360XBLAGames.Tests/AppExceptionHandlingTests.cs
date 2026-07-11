@@ -9,7 +9,7 @@ public class AppExceptionHandlingTests
     [Fact]
     public void BuildEnvironmentDetails_ShouldContainDate()
     {
-        var environment = App.BuildEnvironmentDetails();
+        var environment = BugReportSink.BuildEnvironmentDetails();
 
         Assert.Contains("Date:", environment, StringComparison.Ordinal);
     }
@@ -17,7 +17,7 @@ public class AppExceptionHandlingTests
     [Fact]
     public void BuildEnvironmentDetails_ShouldContainApplicationName()
     {
-        var environment = App.BuildEnvironmentDetails();
+        var environment = BugReportSink.BuildEnvironmentDetails();
 
         Assert.Contains("Application Name:", environment, StringComparison.Ordinal);
     }
@@ -25,7 +25,7 @@ public class AppExceptionHandlingTests
     [Fact]
     public void BuildEnvironmentDetails_ShouldContainApplicationVersion()
     {
-        var environment = App.BuildEnvironmentDetails();
+        var environment = BugReportSink.BuildEnvironmentDetails();
 
         Assert.Contains("Application Version:", environment, StringComparison.Ordinal);
     }
@@ -33,7 +33,7 @@ public class AppExceptionHandlingTests
     [Fact]
     public void BuildEnvironmentDetails_ShouldContainOSVersion()
     {
-        var environment = App.BuildEnvironmentDetails();
+        var environment = BugReportSink.BuildEnvironmentDetails();
 
         Assert.Contains("OS Version:", environment, StringComparison.Ordinal);
     }
@@ -41,7 +41,7 @@ public class AppExceptionHandlingTests
     [Fact]
     public void BuildEnvironmentDetails_ShouldContainArchitecture()
     {
-        var environment = App.BuildEnvironmentDetails();
+        var environment = BugReportSink.BuildEnvironmentDetails();
 
         Assert.Contains("Architecture:", environment, StringComparison.Ordinal);
     }
@@ -49,7 +49,7 @@ public class AppExceptionHandlingTests
     [Fact]
     public void BuildEnvironmentDetails_ShouldContainBitness()
     {
-        var environment = App.BuildEnvironmentDetails();
+        var environment = BugReportSink.BuildEnvironmentDetails();
 
         Assert.Contains("Bitness:", environment, StringComparison.Ordinal);
     }
@@ -57,7 +57,7 @@ public class AppExceptionHandlingTests
     [Fact]
     public void BuildEnvironmentDetails_ShouldContainWindowsVersion()
     {
-        var environment = App.BuildEnvironmentDetails();
+        var environment = BugReportSink.BuildEnvironmentDetails();
 
         Assert.Contains("Windows Version:", environment, StringComparison.Ordinal);
     }
@@ -65,7 +65,7 @@ public class AppExceptionHandlingTests
     [Fact]
     public void BuildEnvironmentDetails_ShouldContainProcessorCount()
     {
-        var environment = App.BuildEnvironmentDetails();
+        var environment = BugReportSink.BuildEnvironmentDetails();
 
         Assert.Contains("Processor Count:", environment, StringComparison.Ordinal);
     }
@@ -73,7 +73,7 @@ public class AppExceptionHandlingTests
     [Fact]
     public void BuildEnvironmentDetails_ShouldContainBaseDirectory()
     {
-        var environment = App.BuildEnvironmentDetails();
+        var environment = BugReportSink.BuildEnvironmentDetails();
 
         Assert.Contains("Base Directory:", environment, StringComparison.Ordinal);
     }
@@ -81,7 +81,7 @@ public class AppExceptionHandlingTests
     [Fact]
     public void BuildEnvironmentDetails_ShouldContainTempPath()
     {
-        var environment = App.BuildEnvironmentDetails();
+        var environment = BugReportSink.BuildEnvironmentDetails();
 
         Assert.Contains("Temp Path:", environment, StringComparison.Ordinal);
     }
@@ -89,7 +89,7 @@ public class AppExceptionHandlingTests
     [Fact]
     public void BuildEnvironmentDetails_ShouldReturnNonEmptyString()
     {
-        var environment = App.BuildEnvironmentDetails();
+        var environment = BugReportSink.BuildEnvironmentDetails();
 
         Assert.False(string.IsNullOrEmpty(environment));
     }
@@ -98,7 +98,7 @@ public class AppExceptionHandlingTests
     public void BuildExceptionReport_ShouldContainEnvironmentDetailsSection()
     {
         var exception = new InvalidOperationException("Test error");
-        var report = App.BuildExceptionReport(exception, "TestSource", TestEnvironment);
+        var report = BugReportSink.BuildExceptionReport(exception, "TestSource", TestEnvironment);
 
         Assert.Contains("=== Environment Details ===", report, StringComparison.Ordinal);
     }
@@ -107,7 +107,7 @@ public class AppExceptionHandlingTests
     public void BuildExceptionReport_ShouldContainErrorDetailsSection()
     {
         var exception = new InvalidOperationException("Test error");
-        var report = App.BuildExceptionReport(exception, "TestSource", TestEnvironment);
+        var report = BugReportSink.BuildExceptionReport(exception, "TestSource", TestEnvironment);
 
         Assert.Contains("=== Error Details ===", report, StringComparison.Ordinal);
     }
@@ -116,7 +116,7 @@ public class AppExceptionHandlingTests
     public void BuildExceptionReport_ShouldContainExceptionDetailsSection()
     {
         var exception = new InvalidOperationException("Test error");
-        var report = App.BuildExceptionReport(exception, "TestSource", TestEnvironment);
+        var report = BugReportSink.BuildExceptionReport(exception, "TestSource", TestEnvironment);
 
         Assert.Contains("=== Exception Details ===", report, StringComparison.Ordinal);
     }
@@ -125,7 +125,7 @@ public class AppExceptionHandlingTests
     public void BuildExceptionReport_ShouldContainErrorSource()
     {
         var exception = new InvalidOperationException("Test error");
-        var report = App.BuildExceptionReport(exception, "TestSource", TestEnvironment);
+        var report = BugReportSink.BuildExceptionReport(exception, "TestSource", TestEnvironment);
 
         Assert.Contains("TestSource", report, StringComparison.Ordinal);
     }
@@ -134,7 +134,7 @@ public class AppExceptionHandlingTests
     public void BuildExceptionReport_ShouldContainExceptionType()
     {
         var exception = new InvalidOperationException("Test error");
-        var report = App.BuildExceptionReport(exception, "TestSource", TestEnvironment);
+        var report = BugReportSink.BuildExceptionReport(exception, "TestSource", TestEnvironment);
 
         Assert.Contains("InvalidOperationException", report, StringComparison.Ordinal);
     }
@@ -143,7 +143,7 @@ public class AppExceptionHandlingTests
     public void BuildExceptionReport_ShouldContainExceptionMessage()
     {
         var exception = new InvalidOperationException("Unique test message 12345");
-        var report = App.BuildExceptionReport(exception, "TestSource", TestEnvironment);
+        var report = BugReportSink.BuildExceptionReport(exception, "TestSource", TestEnvironment);
 
         Assert.Contains("Unique test message 12345", report, StringComparison.Ordinal);
     }
@@ -152,7 +152,7 @@ public class AppExceptionHandlingTests
     public void BuildExceptionReport_ShouldContainExceptionSource()
     {
         var exception = new InvalidOperationException("Test error") { Source = "MyApp.Module" };
-        var report = App.BuildExceptionReport(exception, "TestSource", TestEnvironment);
+        var report = BugReportSink.BuildExceptionReport(exception, "TestSource", TestEnvironment);
 
         Assert.Contains("MyApp.Module", report, StringComparison.Ordinal);
     }
@@ -166,7 +166,7 @@ public class AppExceptionHandlingTests
         }
         catch (Exception ex)
         {
-            var report = App.BuildExceptionReport(ex, "TestSource", TestEnvironment);
+            var report = BugReportSink.BuildExceptionReport(ex, "TestSource", TestEnvironment);
             Assert.Contains("BuildExceptionReport_ShouldContainStackTrace", report, StringComparison.Ordinal);
         }
     }
@@ -175,7 +175,7 @@ public class AppExceptionHandlingTests
     public void BuildExceptionReport_ShouldReturnNonEmptyString()
     {
         var exception = new InvalidOperationException("Test error");
-        var report = App.BuildExceptionReport(exception, "TestSource", TestEnvironment);
+        var report = BugReportSink.BuildExceptionReport(exception, "TestSource", TestEnvironment);
 
         Assert.False(string.IsNullOrEmpty(report));
     }
@@ -184,7 +184,7 @@ public class AppExceptionHandlingTests
     public void BuildExceptionReport_ShouldContainEnvironment()
     {
         var exception = new InvalidOperationException("Test error");
-        var report = App.BuildExceptionReport(exception, "TestSource", "CustomEnv123");
+        var report = BugReportSink.BuildExceptionReport(exception, "TestSource", "CustomEnv123");
 
         Assert.Contains("CustomEnv123", report, StringComparison.Ordinal);
     }
@@ -193,7 +193,7 @@ public class AppExceptionHandlingTests
     public void BuildExceptionReport_ShouldNotThrowForNullMessage()
     {
         var exception = new InvalidOperationException(null);
-        var report = App.BuildExceptionReport(exception, "TestSource", TestEnvironment);
+        var report = BugReportSink.BuildExceptionReport(exception, "TestSource", TestEnvironment);
 
         Assert.NotNull(report);
     }
@@ -205,7 +205,7 @@ public class AppExceptionHandlingTests
         var outer = new InvalidOperationException("Outer error", inner);
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, outer);
+        BugReportSink.AppendExceptionDetails(sb, outer);
 
         var result = sb.ToString();
         Assert.Contains("Inner Exception:", result, StringComparison.Ordinal);
@@ -221,7 +221,7 @@ public class AppExceptionHandlingTests
         var outer = new InvalidOperationException("Outer", inner1);
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, outer);
+        BugReportSink.AppendExceptionDetails(sb, outer);
 
         var result = sb.ToString();
         Assert.Contains("FormatException", result, StringComparison.Ordinal);
@@ -237,7 +237,7 @@ public class AppExceptionHandlingTests
         var level1 = new InvalidOperationException("Level 1", level2);
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, level1);
+        BugReportSink.AppendExceptionDetails(sb, level1);
 
         var result = sb.ToString();
         Assert.Contains("Level 1", result, StringComparison.Ordinal);
@@ -251,7 +251,7 @@ public class AppExceptionHandlingTests
         var exception = new IndexOutOfRangeException("Test");
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, exception);
+        BugReportSink.AppendExceptionDetails(sb, exception);
 
         var result = sb.ToString();
         Assert.Contains("Type:", result, StringComparison.Ordinal);
@@ -264,7 +264,7 @@ public class AppExceptionHandlingTests
         var exception = new InvalidOperationException("Specific message ABC");
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, exception);
+        BugReportSink.AppendExceptionDetails(sb, exception);
 
         var result = sb.ToString();
         Assert.Contains("Message:", result, StringComparison.Ordinal);
@@ -277,7 +277,7 @@ public class AppExceptionHandlingTests
         var exception = new InvalidOperationException("Test") { Source = "TestLibrary" };
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, exception);
+        BugReportSink.AppendExceptionDetails(sb, exception);
 
         var result = sb.ToString();
         Assert.Contains("Source:", result, StringComparison.Ordinal);
@@ -294,7 +294,7 @@ public class AppExceptionHandlingTests
         }
         catch (Exception ex)
         {
-            App.AppendExceptionDetails(sb, ex);
+            BugReportSink.AppendExceptionDetails(sb, ex);
         }
 
         var result = sb.ToString();
@@ -307,7 +307,7 @@ public class AppExceptionHandlingTests
         var exception = new InvalidOperationException("Test") { Source = null! };
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, exception);
+        BugReportSink.AppendExceptionDetails(sb, exception);
 
         var result = sb.ToString();
         Assert.Contains("Source:", result, StringComparison.Ordinal);
@@ -319,7 +319,7 @@ public class AppExceptionHandlingTests
         var exception = new InvalidOperationException("Test");
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, exception);
+        BugReportSink.AppendExceptionDetails(sb, exception);
 
         var result = sb.ToString();
         Assert.Contains("StackTrace:", result, StringComparison.Ordinal);
@@ -332,7 +332,7 @@ public class AppExceptionHandlingTests
         var outer = new InvalidOperationException("Outer error", inner);
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, outer);
+        BugReportSink.AppendExceptionDetails(sb, outer);
 
         var result = sb.ToString();
         Assert.Contains("  ", result, StringComparison.Ordinal);
@@ -344,7 +344,7 @@ public class AppExceptionHandlingTests
         var exception = new InvalidOperationException("Single error");
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, exception);
+        BugReportSink.AppendExceptionDetails(sb, exception);
 
         var result = sb.ToString();
         Assert.Contains("Type:", result, StringComparison.Ordinal);
@@ -356,7 +356,7 @@ public class AppExceptionHandlingTests
         var exception = new InvalidOperationException(string.Empty);
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, exception);
+        BugReportSink.AppendExceptionDetails(sb, exception);
 
         var result = sb.ToString();
         Assert.Contains("Message:", result, StringComparison.Ordinal);
@@ -370,7 +370,7 @@ public class AppExceptionHandlingTests
         var aggregate = new AggregateException("Outer", inner1, inner2);
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, aggregate);
+        BugReportSink.AppendExceptionDetails(sb, aggregate);
 
         var result = sb.ToString();
         Assert.Contains("AggregateException", result, StringComparison.Ordinal);
@@ -383,7 +383,7 @@ public class AppExceptionHandlingTests
         var exception = new InvalidOperationException("Simple error");
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, exception);
+        BugReportSink.AppendExceptionDetails(sb, exception);
 
         Assert.True(sb.Length > 0);
     }
@@ -392,7 +392,7 @@ public class AppExceptionHandlingTests
     public void BuildExceptionReport_WithCustomException_ShouldIncludeDerivedType()
     {
         var exception = new CustomTestException("Custom error message");
-        var report = App.BuildExceptionReport(exception, "TestSource", TestEnvironment);
+        var report = BugReportSink.BuildExceptionReport(exception, "TestSource", TestEnvironment);
 
         Assert.Contains("CustomTestException", report, StringComparison.Ordinal);
         Assert.Contains("Custom error message", report, StringComparison.Ordinal);
@@ -403,7 +403,7 @@ public class AppExceptionHandlingTests
     {
         var inner = new ArgumentException("Inner msg");
         var outer = new InvalidOperationException("Outer msg", inner);
-        var report = App.BuildExceptionReport(outer, "TestSource", TestEnvironment);
+        var report = BugReportSink.BuildExceptionReport(outer, "TestSource", TestEnvironment);
 
         Assert.Contains("Outer msg", report, StringComparison.Ordinal);
         Assert.Contains("Inner msg", report, StringComparison.Ordinal);
@@ -415,7 +415,7 @@ public class AppExceptionHandlingTests
         var inner = new InvalidOperationException("Level 1", new InvalidOperationException("Level 2", new InvalidOperationException("Level 3")));
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, inner);
+        BugReportSink.AppendExceptionDetails(sb, inner);
 
         var result = sb.ToString();
         Assert.Contains("Level 1", result, StringComparison.Ordinal);

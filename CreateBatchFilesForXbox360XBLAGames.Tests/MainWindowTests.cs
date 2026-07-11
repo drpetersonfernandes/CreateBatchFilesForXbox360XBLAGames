@@ -652,7 +652,7 @@ public class MainWindowTests : IDisposable
         var middle = new InvalidOperationException("Middle exception message", inner);
         var outer = new InvalidOperationException("Outer exception message", middle);
 
-        var report = App.BuildExceptionReport(outer, "TestSource", "TestEnv");
+        var report = BugReportSink.BuildExceptionReport(outer, "TestSource", "TestEnv");
 
         Assert.Contains("Outer exception message", report, StringComparison.Ordinal);
         Assert.Contains("Middle exception message", report, StringComparison.Ordinal);
@@ -665,7 +665,7 @@ public class MainWindowTests : IDisposable
         var inner = new InvalidOperationException("Level 1", new InvalidOperationException("Level 2", new InvalidOperationException("Level 3")));
         var sb = new StringBuilder();
 
-        App.AppendExceptionDetails(sb, inner);
+        BugReportSink.AppendExceptionDetails(sb, inner);
 
         var result = sb.ToString();
         Assert.Contains("Level 1", result, StringComparison.Ordinal);
@@ -679,7 +679,7 @@ public class MainWindowTests : IDisposable
         var exception = new InvalidOperationException("Test");
         var sb = new StringBuilder();
 
-        var ex = Record.Exception(() => App.AppendExceptionDetails(sb, exception));
+        var ex = Record.Exception(() => BugReportSink.AppendExceptionDetails(sb, exception));
         Assert.Null(ex);
     }
 }

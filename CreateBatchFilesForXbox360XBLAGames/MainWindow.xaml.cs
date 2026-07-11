@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using Microsoft.Win32;
+using Serilog;
 
 namespace CreateBatchFilesForXbox360XBLAGames;
 
@@ -14,14 +15,23 @@ public partial class MainWindow
     {
         InitializeComponent();
 
-        LogMessage("Welcome to the Batch File Creator for Xbox 360 XBLA Games.");
-        LogMessage("");
-        LogMessage("This program creates batch files to launch your Xbox 360 XBLA games.");
-        LogMessage("Please follow these steps:");
-        LogMessage("1. Select the Xenia executable file (xenia.exe)");
-        LogMessage("2. Select the root folder containing your Xbox 360 XBLA game folders");
-        LogMessage("3. Click 'Create Batch Files' to generate the batch files");
-        LogMessage("");
+        UILogSink.Initialize(message =>
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                LogTextBox.AppendText(message + Environment.NewLine);
+                LogTextBox.ScrollToEnd();
+            });
+        });
+
+        Log.Information("Welcome to the Batch File Creator for Xbox 360 XBLA Games.");
+        Log.Information("");
+        Log.Information("This program creates batch files to launch your Xbox 360 XBLA games.");
+        Log.Information("Please follow these steps:");
+        Log.Information("1. Select the Xenia executable file (xenia.exe)");
+        Log.Information("2. Select the root folder containing your Xbox 360 XBLA game folders");
+        Log.Information("3. Click 'Create Batch Files' to generate the batch files");
+        Log.Information("");
         UpdateStatusBarMessage("Ready");
 
         Loaded += async (_, _) => await CheckForUpdatesAsync();
@@ -40,15 +50,6 @@ public partial class MainWindow
         BugReportService.CancelAll();
     }
 
-    private void LogMessage(string message)
-    {
-        Application.Current.Dispatcher.Invoke(() =>
-        {
-            LogTextBox.AppendText(message + Environment.NewLine);
-            LogTextBox.ScrollToEnd();
-        });
-    }
-
     private async void BrowseXeniaButton_ClickAsync(object sender, RoutedEventArgs e)
     {
         try
@@ -57,24 +58,21 @@ public partial class MainWindow
             if (string.IsNullOrEmpty(xeniaExePath)) return;
 
             XeniaPathTextBox.Text = xeniaExePath;
-            LogMessage($"Xenia executable selected: {xeniaExePath}");
+            Log.Information("Xenia executable selected: {Path}", xeniaExePath);
             UpdateStatusBarMessage("Xenia executable selected.");
 
-            // Validate the Xenia executable
             if (!File.Exists(xeniaExePath))
             {
-                LogMessage("Warning: The selected Xenia executable file does not exist.");
-                await ReportBugAsync("Selected Xenia executable does not exist: " + xeniaExePath);
+                Log.Warning("The selected Xenia executable file does not exist: {Path}", xeniaExePath);
             }
             else if (!Path.GetFileName(xeniaExePath).Contains("xenia", StringComparison.OrdinalIgnoreCase))
             {
-                LogMessage("Warning: The selected file does not appear to be a Xenia executable.");
-                await ReportBugAsync("Selected file may not be Xenia executable: " + xeniaExePath);
+                Log.Warning("The selected file may not be a Xenia executable: {Path}", xeniaExePath);
             }
         }
         catch (Exception ex)
         {
-            await ReportBugAsync("Error in method BrowseXeniaButton_ClickAsync", ex);
+            Log.Error(ex, "Error in method BrowseXeniaButton_ClickAsync");
         }
     }
 
@@ -86,27 +84,25 @@ public partial class MainWindow
             if (string.IsNullOrEmpty(rootFolder)) return;
 
             GameFolderTextBox.Text = rootFolder;
-            LogMessage($"Game folder selected: {rootFolder}");
+            Log.Information("Game folder selected: {Path}", rootFolder);
             UpdateStatusBarMessage("Game folder selected.");
 
-            // Validate the game folder
             if (!Directory.Exists(rootFolder))
             {
-                LogMessage("Warning: The selected game folder does not exist.");
-                await ReportBugAsync("Selected game folder does not exist: " + rootFolder);
+                Log.Warning("The selected game folder does not exist: {Path}", rootFolder);
             }
             else
             {
                 var subDirectories = Directory.GetDirectories(rootFolder);
                 if (subDirectories.Length != 0) return;
 
-                LogMessage("Warning: The selected game folder has no subdirectories.");
-                await ReportBugAsync("Selected game folder has no subdirectories: " + rootFolder);
+                Log.Warning("The selected game folder has no subdirectories: {Path}", rootFolder);
+                ShowError("The selected folder has no subdirectories. Please select a folder that contains your Xbox 360 XBLA game folders.");
             }
         }
         catch (Exception ex)
         {
-            await ReportBugAsync("Error in method BrowseFolderButton_ClickAsync", ex);
+            Log.Error(ex, "Error in method BrowseFolderButton_ClickAsync");
         }
     }
 
@@ -119,7 +115,7 @@ public partial class MainWindow
 
             if (string.IsNullOrEmpty(xeniaExePath))
             {
-                LogMessage("Error: No Xenia executable selected.");
+                Log.Error("No Xenia executable selected");
                 ShowError("Please select the Xenia executable file (xenia.exe).");
                 UpdateStatusBarMessage("Error: Xenia executable not selected.");
                 return;
@@ -127,16 +123,15 @@ public partial class MainWindow
 
             if (!File.Exists(xeniaExePath))
             {
-                LogMessage($"Error: Xenia executable not found at path: {xeniaExePath}");
+                Log.Error("Xenia executable not found at path: {Path}", xeniaExePath);
                 ShowError("The selected Xenia executable file does not exist.");
-                await ReportBugAsync("Xenia executable not found", new FileNotFoundException("The Xenia executable was not found", xeniaExePath));
                 UpdateStatusBarMessage("Error: Xenia executable not found.");
                 return;
             }
 
             if (string.IsNullOrEmpty(rootFolder))
             {
-                LogMessage("Error: No game folder selected.");
+                Log.Error("No game folder selected");
                 ShowError("Please select the root folder containing your Xbox 360 XBLA game folders.");
                 UpdateStatusBarMessage("Error: Game folder not selected.");
                 return;
@@ -144,9 +139,8 @@ public partial class MainWindow
 
             if (!Directory.Exists(rootFolder))
             {
-                LogMessage($"Error: Game folder not found at path: {rootFolder}");
+                Log.Error("Game folder not found at path: {Path}", rootFolder);
                 ShowError("The selected game folder does not exist.");
-                await ReportBugAsync("Game folder not found", new DirectoryNotFoundException($"Game folder not found: {rootFolder}"));
                 UpdateStatusBarMessage("Error: Game folder not found.");
                 return;
             }
@@ -155,7 +149,7 @@ public partial class MainWindow
             {
                 const string errorMessage = "No write permission for the selected folder. " +
                                             "Please try running the application as administrator or select a folder where you have write permission.";
-                LogMessage($"Error: {errorMessage}");
+                Log.Error(errorMessage);
                 ShowError(errorMessage);
                 UpdateStatusBarMessage("Error: Access denied.");
                 return;
@@ -167,15 +161,14 @@ public partial class MainWindow
             }
             catch (Exception ex)
             {
-                LogMessage($"Error creating batch files: {ex.Message}");
+                Log.Error(ex, "Error creating batch files");
                 ShowError($"An error occurred while creating batch files: {ex.Message}");
-                await ReportBugAsync("Error creating batch files", ex);
                 UpdateStatusBarMessage("Process failed with an error.");
             }
         }
         catch (Exception ex)
         {
-            await ReportBugAsync("Error creating batch files", ex);
+            Log.Error(ex, "Error creating batch files");
             UpdateStatusBarMessage("An unexpected error occurred.");
         }
     }
@@ -205,7 +198,7 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"[MainWindow] CheckForUpdatesAsync failed: {ex}");
+            Log.Warning(ex, "CheckForUpdatesAsync failed");
         }
     }
 
@@ -240,8 +233,8 @@ public partial class MainWindow
             var directoriesProcessed = 0;
             var directoriesSkipped = 0;
 
-            LogMessage("");
-            LogMessage("Starting batch file creation process...");
+            Log.Information("");
+            Log.Information("Starting batch file creation process...");
             UpdateStatusBarMessage("Creating batch files...");
 
             foreach (var gameDirectory in gameDirectories)
@@ -256,7 +249,7 @@ public partial class MainWindow
 
                     if (string.IsNullOrEmpty(gameFilePath))
                     {
-                        LogMessage($"No game file found in {gameFolderName}. Skipping...");
+                        Log.Warning("No game file found in {Folder}. Skipping...", gameFolderName);
                         directoriesSkipped++;
                         continue;
                     }
@@ -270,38 +263,36 @@ public partial class MainWindow
                             await sw.WriteLineAsync($"start \"\" \"{Path.GetFileName(xeniaExePath)}\" \"{gameFilePath}\"");
                         }
 
-                        LogMessage($"Batch file created: {batchFilePath}");
+                        Log.Information("Batch file created: {Path}", batchFilePath);
                         filesCreated++;
                     }
                     catch (UnauthorizedAccessException ex)
                     {
-                        LogMessage($"Permission denied creating batch file for {gameFolderName}: {ex.Message}");
+                        Log.Warning(ex, "Permission denied creating batch file for {Folder}", gameFolderName);
                         directoriesSkipped++;
                     }
                     catch (Exception ex)
                     {
-                        LogMessage($"Error creating batch file for {gameFolderName}: {ex.Message}");
-                        await ReportBugAsync($"Error creating batch file for {gameFolderName}", ex);
+                        Log.Error(ex, "Error creating batch file for {Folder}", gameFolderName);
                         directoriesSkipped++;
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogMessage($"Error processing directory {Path.GetFileName(gameDirectory)}: {ex.Message}");
-                    await ReportBugAsync($"Error processing directory: {Path.GetFileName(gameDirectory)}", ex);
+                    Log.Error(ex, "Error processing directory {Folder}", Path.GetFileName(gameDirectory));
                     directoriesSkipped++;
                 }
             }
 
-            LogMessage("");
-            LogMessage($"Processed {directoriesProcessed} directories.");
-            LogMessage($"Skipped {directoriesSkipped} directories.");
+            Log.Information("");
+            Log.Information("Processed {Count} directories", directoriesProcessed);
+            Log.Information("Skipped {Count} directories", directoriesSkipped);
             UpdateStatusBarMessage($"Process complete. Created {filesCreated} files, skipped {directoriesSkipped}.");
 
             if (filesCreated > 0)
             {
-                LogMessage($"{filesCreated} batch files have been successfully created.");
-                LogMessage("They are located in the root folder of your Xbox 360 XBLA games.");
+                Log.Information("{Count} batch files have been successfully created", filesCreated);
+                Log.Information("They are located in the root folder of your Xbox 360 XBLA games");
 
                 ShowMessageBox($"{filesCreated} batch files have been successfully created.\n\n" +
                                "They are located in the root folder of your Xbox 360 XBLA games.",
@@ -310,18 +301,14 @@ public partial class MainWindow
             else
             {
                 const string errorMessage = "No valid game folders found. No batch files were created.";
-                LogMessage(errorMessage);
+                Log.Warning(errorMessage);
                 ShowError(errorMessage);
-
-                var ex = new InvalidOperationException($"Processed {directoriesProcessed} directories but created 0 batch files");
-                await ReportBugAsync(errorMessage, ex);
             }
         }
         catch (Exception ex)
         {
-            LogMessage($"Error scanning game folders: {ex.Message}");
+            Log.Error(ex, "Error scanning game folders");
             UpdateStatusBarMessage("Error scanning game folders.");
-            await ReportBugAsync("Error scanning game folders", ex);
             throw;
         }
     }
@@ -337,21 +324,20 @@ public partial class MainWindow
                 return files.Length > 0 ? files[0] : null;
             }
 
-            // If we couldn't find the 000D0000 directory, pick the first file found recursively
             var allFiles = Directory.GetFiles(gameDirectory, "*", SearchOption.AllDirectories);
             if (allFiles.Length > 0)
             {
-                LogMessage($"000D0000 directory not found for {Path.GetFileName(gameDirectory)}, using first available file: {Path.GetFileName(allFiles[0])}");
+                Log.Information("000D0000 directory not found for {Folder}, using first available file: {File}",
+                    Path.GetFileName(gameDirectory), Path.GetFileName(allFiles[0]));
                 return allFiles[0];
             }
 
-            // If no files found at all, report the structure for debugging.
             var directoryStructure = new StringBuilder();
             directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Directory structure for {Path.GetFileName(gameDirectory)}:");
             try
             {
                 var allDirs = Directory.GetDirectories(gameDirectory, "*", SearchOption.AllDirectories);
-                foreach (var dir in allDirs.Take(10)) // Limit report size
+                foreach (var dir in allDirs.Take(10))
                 {
                     directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"- {Path.GetRelativePath(gameDirectory, dir)}");
                 }
@@ -366,12 +352,12 @@ public partial class MainWindow
                 directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Error accessing directory structure: {ex.Message}");
             }
 
-            await ReportBugAsync($"No files found for game: {Path.GetFileName(gameDirectory)}", new DirectoryNotFoundException(directoryStructure.ToString()));
+            Log.Error("No files found for game: {Folder}\n{Structure}",
+                Path.GetFileName(gameDirectory), directoryStructure.ToString());
         }
         catch (Exception ex)
         {
-            LogMessage($"Error finding game file in {Path.GetFileName(gameDirectory)}: {ex.Message}");
-            await ReportBugAsync($"Error finding game file in {Path.GetFileName(gameDirectory)}", ex);
+            Log.Error(ex, "Error finding game file in {Folder}", Path.GetFileName(gameDirectory));
         }
 
         return null;
@@ -405,53 +391,6 @@ public partial class MainWindow
         }
     }
 
-    private async Task ReportBugAsync(string message, Exception? exception = null)
-    {
-        if (App.BugReportService == null) return;
-
-        try
-        {
-            var environmentStr = App.BuildEnvironmentDetails();
-            var stackTrace = exception?.StackTrace;
-
-            var fullReport = new StringBuilder();
-            if (exception != null)
-            {
-                fullReport.Append(App.BuildExceptionReport(exception, message, environmentStr));
-            }
-            else
-            {
-                fullReport.AppendLine("=== Environment Details ===");
-                fullReport.Append(environmentStr);
-                fullReport.AppendLine();
-                fullReport.AppendLine("=== Error Details ===");
-                fullReport.AppendLine(message);
-                fullReport.AppendLine();
-            }
-
-            if (LogTextBox != null)
-            {
-                var logContent = await Dispatcher.InvokeAsync(() => LogTextBox.Text);
-                if (!string.IsNullOrEmpty(logContent))
-                {
-                    fullReport.AppendLine().AppendLine("=== Application Log ===").Append(logContent);
-                }
-            }
-
-            if (XeniaPathTextBox != null && GameFolderTextBox != null)
-            {
-                var (xeniaPath, gameFolderPath) = await Dispatcher.InvokeAsync(() => (XeniaPathTextBox.Text, GameFolderTextBox.Text));
-                fullReport.AppendLine().AppendLine("=== Configuration ===").AppendLine(CultureInfo.InvariantCulture, $"Xenia Path: {xeniaPath}").AppendLine(CultureInfo.InvariantCulture, $"Game Folder Path: {gameFolderPath}");
-            }
-
-            await App.BugReportService.SendBugReportAsync(fullReport.ToString(), App.ApplicationVersion, environmentStr, stackTrace);
-        }
-        catch (Exception ex)
-        {
-            Trace.WriteLine($"[MainWindow] ReportBugAsync failed: {ex}");
-        }
-    }
-
     private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
     {
         BugReportService.CancelAll();
@@ -467,9 +406,7 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            LogMessage($"Error opening About window: {ex.Message}");
-            _ = ReportBugAsync("Error opening About window", ex);
+            Log.Error(ex, "Error opening About window");
         }
     }
 }
-

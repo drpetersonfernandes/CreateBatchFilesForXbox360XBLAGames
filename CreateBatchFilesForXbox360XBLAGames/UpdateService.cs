@@ -1,7 +1,7 @@
-using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
+using Serilog;
 
 namespace CreateBatchFilesForXbox360XBLAGames;
 
@@ -59,21 +59,11 @@ public class UpdateService
             _globalCts = new CancellationTokenSource();
         }
 
-        try
-        {
-            oldCts.Cancel();
-        }
-        catch (ObjectDisposedException)
-        {
-        }
+        try { oldCts.Cancel(); }
+        catch (ObjectDisposedException) { }
 
-        try
-        {
-            oldCts.Dispose();
-        }
-        catch (ObjectDisposedException)
-        {
-        }
+        try { oldCts.Dispose(); }
+        catch (ObjectDisposedException) { }
     }
 
     public async Task<UpdateCheckResult?> CheckForUpdateAsync()
@@ -111,7 +101,7 @@ public class UpdateService
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"[UpdateService] CheckForUpdateAsync failed: {ex}");
+            Log.Error(ex, "CheckForUpdateAsync failed");
         }
 
         return null;
