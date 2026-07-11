@@ -1,28 +1,9 @@
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Json.Serialization;
+using CreateBatchFilesForXbox360XBLAGames.Models;
 using Serilog;
 
-namespace CreateBatchFilesForXbox360XBLAGames;
-
-public class GitHubRelease
-{
-    [JsonPropertyName("tag_name")]
-    public string? TagName { get; set; }
-
-    [JsonPropertyName("name")]
-    public string? Name { get; set; }
-
-    [JsonPropertyName("html_url")]
-    public string? HtmlUrl { get; set; }
-}
-
-public class UpdateCheckResult
-{
-    public bool UpdateAvailable { get; set; }
-    public string? LatestVersion { get; set; }
-    public string? ReleaseUrl { get; set; }
-}
+namespace CreateBatchFilesForXbox360XBLAGames.Services;
 
 public class UpdateService
 {

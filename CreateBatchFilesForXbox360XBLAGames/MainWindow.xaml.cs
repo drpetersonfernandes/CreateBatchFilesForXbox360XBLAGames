@@ -4,6 +4,8 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows;
+using System.Windows.Input;
+using CreateBatchFilesForXbox360XBLAGames.Services;
 using Microsoft.Win32;
 using Serilog;
 
@@ -15,7 +17,7 @@ public partial class MainWindow
     {
         InitializeComponent();
 
-        UILogSink.Initialize(message =>
+        UiLogSink.Initialize(message =>
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -50,7 +52,16 @@ public partial class MainWindow
         BugReportService.CancelAll();
     }
 
-    private async void BrowseXeniaButton_ClickAsync(object sender, RoutedEventArgs e)
+    private void Window_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.F8)
+        {
+            ScreenshotService.CaptureWindow(this);
+            e.Handled = true;
+        }
+    }
+
+    private void BrowseXeniaButton_ClickAsync(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -76,7 +87,7 @@ public partial class MainWindow
         }
     }
 
-    private async void BrowseFolderButton_ClickAsync(object sender, RoutedEventArgs e)
+    private void BrowseFolderButton_ClickAsync(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -313,54 +324,61 @@ public partial class MainWindow
         }
     }
 
-    private async Task<string?> FindGameFileAsync(string gameDirectory)
+    private static Task<string?> FindGameFileAsync(string gameDirectory)
     {
         try
         {
-            var directories = Directory.GetDirectories(gameDirectory, "000D0000", SearchOption.AllDirectories);
-            if (directories.Length > 0)
-            {
-                var files = Directory.GetFiles(directories[0]);
-                return files.Length > 0 ? files[0] : null;
-            }
-
-            var allFiles = Directory.GetFiles(gameDirectory, "*", SearchOption.AllDirectories);
-            if (allFiles.Length > 0)
-            {
-                Log.Information("000D0000 directory not found for {Folder}, using first available file: {File}",
-                    Path.GetFileName(gameDirectory), Path.GetFileName(allFiles[0]));
-                return allFiles[0];
-            }
-
-            var directoryStructure = new StringBuilder();
-            directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Directory structure for {Path.GetFileName(gameDirectory)}:");
             try
             {
-                var allDirs = Directory.GetDirectories(gameDirectory, "*", SearchOption.AllDirectories);
-                foreach (var dir in allDirs.Take(10))
+                var directories = Directory.GetDirectories(gameDirectory, "000D0000", SearchOption.AllDirectories);
+                if (directories.Length > 0)
                 {
-                    directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"- {Path.GetRelativePath(gameDirectory, dir)}");
+                    var files = Directory.GetFiles(directories[0]);
+                    return Task.FromResult(files.Length > 0 ? files[0] : null);
                 }
 
-                if (allDirs.Length > 10)
+                var allFiles = Directory.GetFiles(gameDirectory, "*", SearchOption.AllDirectories);
+                if (allFiles.Length > 0)
                 {
-                    directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"- ... and {allDirs.Length - 10} more directories");
+                    Log.Information("000D0000 directory not found for {Folder}, using first available file: {File}",
+                        Path.GetFileName(gameDirectory), Path.GetFileName(allFiles[0]));
+                    return Task.FromResult<string?>(allFiles[0]);
                 }
+
+                var directoryStructure = new StringBuilder();
+                directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Directory structure for {Path.GetFileName(gameDirectory)}:");
+                try
+                {
+                    var allDirs = Directory.GetDirectories(gameDirectory, "*", SearchOption.AllDirectories);
+                    foreach (var dir in allDirs.Take(10))
+                    {
+                        directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"- {Path.GetRelativePath(gameDirectory, dir)}");
+                    }
+
+                    if (allDirs.Length > 10)
+                    {
+                        directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"- ... and {allDirs.Length - 10} more directories");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Error accessing directory structure: {ex.Message}");
+                }
+
+                Log.Error("No files found for game: {Folder}\n{Structure}",
+                    Path.GetFileName(gameDirectory), directoryStructure.ToString());
             }
             catch (Exception ex)
             {
-                directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Error accessing directory structure: {ex.Message}");
+                Log.Error(ex, "Error finding game file in {Folder}", Path.GetFileName(gameDirectory));
             }
 
-            Log.Error("No files found for game: {Folder}\n{Structure}",
-                Path.GetFileName(gameDirectory), directoryStructure.ToString());
+            return Task.FromResult<string?>(null);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            Log.Error(ex, "Error finding game file in {Folder}", Path.GetFileName(gameDirectory));
+            return Task.FromException<string?>(exception);
         }
-
-        return null;
     }
 
     private void ShowMessageBox(string message, string title, MessageBoxButton buttons, MessageBoxImage icon)

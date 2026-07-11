@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using CreateBatchFilesForXbox360XBLAGames.Services;
 using Serilog.Core;
 using Serilog.Events;
 

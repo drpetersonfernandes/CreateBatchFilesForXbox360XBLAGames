@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Net.Http.Headers;
 using Serilog;
 
-namespace CreateBatchFilesForXbox360XBLAGames;
+namespace CreateBatchFilesForXbox360XBLAGames.Services;
 
 public class StatsService
 {

@@ -1,6 +1,5 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Windows.Threading;
+﻿using System.Windows.Threading;
+using CreateBatchFilesForXbox360XBLAGames.Services;
 using Serilog;
 
 namespace CreateBatchFilesForXbox360XBLAGames;
@@ -45,14 +44,14 @@ public partial class App
         _ = TrackApplicationUsageAsync();
     }
 
-    private void ConfigureSerilog()
+    private static void ConfigureSerilog()
     {
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
             .WriteTo.Debug()
             .WriteTo.Sink(new BugReportSink(BugReportApiUrl, BugReportApiKey, ApplicationName, ApplicationVersion))
-            .WriteTo.Sink(new UILogSink())
+            .WriteTo.Sink(new UiLogSink())
             .CreateLogger();
     }
 

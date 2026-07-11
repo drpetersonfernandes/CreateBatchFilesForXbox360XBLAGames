@@ -1,9 +1,10 @@
+using System.Globalization;
 using Serilog.Core;
 using Serilog.Events;
 
 namespace CreateBatchFilesForXbox360XBLAGames;
 
-public class UILogSink : ILogEventSink
+public class UiLogSink : ILogEventSink
 {
     private static Action<string>? _writeAction;
 
@@ -17,7 +18,7 @@ public class UILogSink : ILogEventSink
         var action = _writeAction;
         if (action == null) return;
 
-        var message = logEvent.RenderMessage();
+        var message = logEvent.RenderMessage(CultureInfo.InvariantCulture);
         action(message);
     }
 }

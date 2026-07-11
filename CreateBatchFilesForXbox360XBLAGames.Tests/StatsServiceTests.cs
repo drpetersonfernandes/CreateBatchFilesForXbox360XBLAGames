@@ -1,5 +1,6 @@
 using System.Net;
 using System.Reflection;
+using CreateBatchFilesForXbox360XBLAGames.Services;
 using Moq;
 using Moq.Protected;
 

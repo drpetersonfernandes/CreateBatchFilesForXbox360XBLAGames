@@ -1,13 +1,13 @@
 <Window x:Class="CreateBatchFilesForXbox360XBLAGames.AboutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="About Batch File Creator for Xbox 360 XBLA Games"
+        Title="About - Batch File Creator for Xbox 360 XBLA Games"
         Width="600"
-        Height="570"
-        ResizeMode="CanResize"
+        Height="600"
+        ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource WindowBackgroundBrush}">
-    <Grid Margin="20">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -16,41 +16,64 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Logo Section -->
-        <Border Grid.Row="0" Style="{StaticResource CardBorder}">
+        <!-- Logo -->
+        <Border Grid.Row="0" Margin="0,0,0,16">
             <StackPanel HorizontalAlignment="Center">
-                <Image Width="130" Height="130" Source="pack://application:,,,/images/logo.png" ToolTip="Batch File Creator for Xbox 360 XBLA Games logo"/>
+                <Image Width="110" Height="110"
+                       Source="pack://application:,,,/images/logo.png"
+                       ToolTip="Batch File Creator for Xbox 360 XBLA Games logo"/>
             </StackPanel>
         </Border>
 
-        <!-- Title & Version Section -->
-        <Border Grid.Row="1" Style="{StaticResource CardBorder}">
+        <!-- Title & Version -->
+        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,0,0,16">
             <StackPanel>
-                <TextBlock Style="{StaticResource AboutTitleStyle}" Text="Batch File Creator for Xbox 360 XBLA Games" ToolTip="Batch File Creator for Xbox 360 XBLA Games"/>
-                <TextBlock x:Name="AppVersionTextBlock" Margin="0,8,0,0" Text="" Style="{StaticResource AboutSubtitleStyle}" Foreground="{StaticResource PrimaryAccentBrush}" ToolTip="Current application version"/>
+                <TextBlock Style="{StaticResource AboutTitleStyle}"
+                           Text="Batch File Creator for Xbox 360 XBLA Games"/>
+                <TextBlock x:Name="AppVersionTextBlock"
+                           Margin="0,10,0,0"
+                           Text=""
+                           Style="{StaticResource AboutSubtitleStyle}"/>
             </StackPanel>
         </Border>
 
-        <!-- Description Section -->
-        <Border Grid.Row="2" Style="{StaticResource CardBorder}">
+        <!-- Description -->
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,0,0,20">
             <StackPanel>
-                <TextBlock Style="{StaticResource AboutSectionHeaderStyle}" Text="Description" Margin="0,0,0,10" ToolTip="Application description"/>
-                <TextBlock x:Name="DescriptionTextBlock" Style="{StaticResource AboutBodyTextStyle}" Text="A simple utility to create batch files for launching your Xbox 360 XBLA games with the Xenia emulator." LineHeight="20" ToolTip="A simple utility to create batch files for launching your Xbox 360 XBLA games with the Xenia emulator"/>
-                <TextBlock Margin="0,15,0,0">
-                    <Hyperlink NavigateUri="https://www.purelogiccode.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{StaticResource LinkTextBrush}" TextDecorations="Underline" ToolTip="Visit Pure Logic Code website in your default browser">
-                        https://www.purelogiccode.com</Hyperlink>
+                <TextBlock Style="{StaticResource AboutSectionHeaderStyle}" Text="Description"/>
+                <TextBlock Style="{StaticResource AboutBodyTextStyle}"
+                           Text="A simple utility to create batch files for launching your Xbox 360 XBLA games with the Xenia emulator."/>
+                <TextBlock Style="{StaticResource AboutSectionHeaderStyle}" Text="Links" Margin="0,16,0,8"/>
+                <TextBlock Margin="0,4,0,0">
+                    <Hyperlink NavigateUri="https://www.purelogiccode.com"
+                               RequestNavigate="Hyperlink_RequestNavigate"
+                               Foreground="{StaticResource LinkBrush}"
+                               TextDecorations="None">
+                        purelogiccode.com
+                    </Hyperlink>
                 </TextBlock>
-                <TextBlock Margin="0,0,0,0">
-                    <Hyperlink NavigateUri="https://github.com/drpetersonfernandes/CreateBatchFilesForXbox360XBLAGames" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{StaticResource LinkTextBrush}" TextDecorations="Underline" ToolTip="Visit the official repository">
-                        https://github.com/drpetersonfernandes/CreateBatchFilesForXbox360XBLAGames</Hyperlink>
+                <TextBlock Margin="0,4,0,0">
+                    <Hyperlink NavigateUri="https://github.com/drpetersonfernandes/CreateBatchFilesForXbox360XBLAGames"
+                               RequestNavigate="Hyperlink_RequestNavigate"
+                               Foreground="{StaticResource LinkBrush}"
+                               TextDecorations="None">
+                        View on GitHub
+                    </Hyperlink>
                 </TextBlock>
             </StackPanel>
         </Border>
 
-        <!-- Close Button Section -->
+        <!-- Buttons -->
         <StackPanel Grid.Row="3" HorizontalAlignment="Center" Orientation="Horizontal">
-            <Button Click="CheckForUpdatesButton_Click" Content="Check for Updates" Style="{StaticResource ActionButtonStyle}" Background="{StaticResource AboutButtonBrush}" Margin="0,0,10,0" ToolTip="Check if a newer version is available on GitHub"/>
-            <Button Click="CloseButton_Click" Content="Close" Style="{StaticResource ActionButtonStyle}" ToolTip="Close this window"/>
+            <Button Click="CheckForUpdatesButton_Click"
+                    Content="Check for Updates"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Margin="0,0,10,0"
+                    ToolTip="Check if a newer version is available"/>
+            <Button Click="CloseButton_Click"
+                    Content="Close"
+                    Style="{StaticResource MutedButtonStyle}"
+                    ToolTip="Close this window"/>
         </StackPanel>
     </Grid>
 </Window>

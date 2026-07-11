@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Json;
 
-namespace CreateBatchFilesForXbox360XBLAGames;
+namespace CreateBatchFilesForXbox360XBLAGames.Services;
 
 public class BugReportService
 {
