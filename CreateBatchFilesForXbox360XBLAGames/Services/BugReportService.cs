@@ -36,14 +36,25 @@ public class BugReportService
             _globalCts = new CancellationTokenSource();
         }
 
-        try { oldCts.Cancel(); }
-        catch (ObjectDisposedException) { }
+        try
+        {
+            oldCts.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
 
-        try { oldCts.Dispose(); }
-        catch (ObjectDisposedException) { }
+        try
+        {
+            oldCts.Dispose();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 
-    public static async Task SendAsync(string message, string applicationName, string version, string? environment, string? stackTrace)
+    public static async Task SendAsync(string message, string applicationName, string version, string? environment,
+        string? stackTrace)
     {
         CancellationToken token;
         lock (CtsLock)

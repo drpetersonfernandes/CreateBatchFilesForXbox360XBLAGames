@@ -41,10 +41,7 @@ public partial class MainWindow
 
     private void UpdateStatusBarMessage(string message)
     {
-        _ = Application.Current.Dispatcher.InvokeAsync(() =>
-        {
-            StatusBarMessage.Text = message;
-        });
+        _ = Application.Current.Dispatcher.InvokeAsync(() => StatusBarMessage.Text = message);
     }
 
     private void Window_Closing(object sender, CancelEventArgs e)
@@ -116,7 +113,8 @@ public partial class MainWindow
                     var filesInFolder = Directory.GetFiles(rootFolder, "*", SearchOption.AllDirectories);
                     if (filesInFolder.Length > 0)
                     {
-                        Log.Information("Single game folder detected: {Path}. A single batch file will be created.", rootFolder);
+                        Log.Information("Single game folder detected: {Path}. A single batch file will be created.",
+                            rootFolder);
                         UpdateStatusBarMessage("Single game folder selected.");
                         return;
                     }
@@ -277,7 +275,8 @@ public partial class MainWindow
             // as a bug. Now treat the selected folder itself as the game.
             if (gameDirectories.Length == 0)
             {
-                var singleGameFolderName = Path.GetFileName(rootFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                var singleGameFolderName =
+                    Path.GetFileName(rootFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
                 if (string.IsNullOrEmpty(singleGameFolderName))
                 {
                     singleGameFolderName = rootFolder;
@@ -296,7 +295,8 @@ public partial class MainWindow
                     if (!CheckWritePermission(outputDirectory))
                     {
                         Log.Warning("No write permission for output folder: {Path}", outputDirectory);
-                        ShowError("No write permission for the output folder. Please try running the application as administrator or select a folder where you have write permission.");
+                        ShowError(
+                            "No write permission for the output folder. Please try running the application as administrator or select a folder where you have write permission.");
                         UpdateStatusBarMessage("Error: Access denied.");
                         return;
                     }
@@ -385,7 +385,9 @@ public partial class MainWindow
     {
         try
         {
-            var parent = Directory.GetParent(singleGameFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            var parent =
+                Directory.GetParent(singleGameFolder.TrimEnd(Path.DirectorySeparatorChar,
+                    Path.AltDirectorySeparatorChar));
             if (parent != null && Directory.Exists(parent.FullName))
             {
                 return parent.FullName;
@@ -399,7 +401,8 @@ public partial class MainWindow
         return singleGameFolder;
     }
 
-    private static async Task<bool> TryCreateBatchFileAsync(string batchFilePath, string gameFilePath, string xeniaExePath, string gameFolderName)
+    private static async Task<bool> TryCreateBatchFileAsync(string batchFilePath, string gameFilePath,
+        string xeniaExePath, string gameFolderName)
     {
         try
         {
@@ -452,23 +455,27 @@ public partial class MainWindow
                 }
 
                 var directoryStructure = new StringBuilder();
-                directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Directory structure for {Path.GetFileName(gameDirectory)}:");
+                directoryStructure.AppendLine(CultureInfo.InvariantCulture,
+                    $"Directory structure for {Path.GetFileName(gameDirectory)}:");
                 try
                 {
                     var allDirs = Directory.GetDirectories(gameDirectory, "*", SearchOption.AllDirectories);
                     foreach (var dir in allDirs.Take(10))
                     {
-                        directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"- {Path.GetRelativePath(gameDirectory, dir)}");
+                        directoryStructure.AppendLine(CultureInfo.InvariantCulture,
+                            $"- {Path.GetRelativePath(gameDirectory, dir)}");
                     }
 
                     if (allDirs.Length > 10)
                     {
-                        directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"- ... and {allDirs.Length - 10} more directories");
+                        directoryStructure.AppendLine(CultureInfo.InvariantCulture,
+                            $"- ... and {allDirs.Length - 10} more directories");
                     }
                 }
                 catch (Exception ex)
                 {
-                    directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Error accessing directory structure: {ex.Message}");
+                    directoryStructure.AppendLine(CultureInfo.InvariantCulture,
+                        $"Error accessing directory structure: {ex.Message}");
                 }
 
                 // User data issue (empty folder), not an application bug: Warning so no bug report is sent.

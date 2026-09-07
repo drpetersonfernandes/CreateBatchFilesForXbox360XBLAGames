@@ -137,7 +137,8 @@ public class StatsServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new OperationCanceledException());
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
@@ -151,7 +152,8 @@ public class StatsServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Network error"));
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
@@ -187,7 +189,8 @@ public class StatsServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new HttpRequestException("Connection refused"));
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
@@ -201,7 +204,8 @@ public class StatsServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new TaskCanceledException());
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
@@ -295,7 +299,8 @@ public class StatsServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = statusCode,

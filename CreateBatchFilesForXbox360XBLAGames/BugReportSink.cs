@@ -48,7 +48,8 @@ public class BugReportSink : ILogEventSink
                 AppendExceptionDetails(sb, exception);
             }
 
-            _ = BugReportService.SendAsync(sb.ToString(), _applicationName, _applicationVersion, environment, exception?.StackTrace);
+            _ = BugReportService.SendAsync(sb.ToString(), _applicationName, _applicationVersion, environment,
+                exception?.StackTrace);
         }
         catch (Exception ex)
         {
@@ -103,7 +104,7 @@ public class BugReportSink : ILogEventSink
             {
                 sb.AppendLine(CultureInfo.InvariantCulture, $"{indent}Inner Exception:");
                 exception = exception.InnerException;
-                level += 1;
+                level++;
                 continue;
             }
 

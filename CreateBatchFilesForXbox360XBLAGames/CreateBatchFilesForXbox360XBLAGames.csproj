@@ -1,42 +1,42 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <ApplicationIcon>icon\icon.ico</ApplicationIcon>
-    <AssemblyVersion>1.6.0</AssemblyVersion>
-    <FileVersion>1.6.0</FileVersion>
-    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
-    <LangVersion>14</LangVersion>
-    <IsPackable>false</IsPackable>
-    <NeutralLanguage>en</NeutralLanguage>
-    <DebugType>embedded</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <Company>PureLogicCode.com</Company>
-  </PropertyGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="CreateBatchFilesForXbox360XBLAGames.Tests" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="icon\icon.ico" />
-    <Resource Include="icon\icon.png" />
-    <Resource Include="images\about.png" />
-    <Resource Include="images\exit.png" />
-    <Resource Include="images\logo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="3.0.222">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Roslynator.Analyzers" Version="5.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Serilog" Version="4.4.0" />
-    <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-  </ItemGroup>
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <ApplicationIcon>icon\icon.ico</ApplicationIcon>
+        <AssemblyVersion>1.6.0</AssemblyVersion>
+        <FileVersion>1.6.0</FileVersion>
+        <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+        <LangVersion>14</LangVersion>
+        <IsPackable>false</IsPackable>
+        <NeutralLanguage>en</NeutralLanguage>
+        <DebugType>embedded</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <Company>PureLogicCode.com</Company>
+    </PropertyGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="CreateBatchFilesForXbox360XBLAGames.Tests" />
+    </ItemGroup>
+    <ItemGroup>
+        <Resource Include="icon\icon.ico" />
+        <Resource Include="icon\icon.png" />
+        <Resource Include="images\about.png" />
+        <Resource Include="images\exit.png" />
+        <Resource Include="images\logo.png" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.222">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Roslynator.Analyzers" Version="5.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Serilog" Version="4.4.0" />
+        <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    </ItemGroup>
 </Project>

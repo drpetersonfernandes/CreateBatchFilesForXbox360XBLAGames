@@ -661,7 +661,8 @@ public class MainWindowTests : IDisposable
     [Fact]
     public void Exception_RecursiveStructure_IsPreserved()
     {
-        var inner = new InvalidOperationException("Level 1", new InvalidOperationException("Level 2", new InvalidOperationException("Level 3")));
+        var inner = new InvalidOperationException("Level 1",
+            new InvalidOperationException("Level 2", new InvalidOperationException("Level 3")));
         var sb = new StringBuilder();
 
         BugReportSink.AppendExceptionDetails(sb, inner);

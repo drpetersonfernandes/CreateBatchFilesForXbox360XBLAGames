@@ -53,7 +53,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_ShouldSendGetRequest()
     {
-        var handlerMock = CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
+        var handlerMock =
+            CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         await service.CheckForUpdateAsync();
@@ -68,7 +69,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_ShouldSendToCorrectUrl()
     {
-        var handlerMock = CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
+        var handlerMock =
+            CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         await service.CheckForUpdateAsync();
@@ -83,7 +85,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_WhenLatestVersionIsNewer_ShouldReturnUpdateAvailableTrue()
     {
-        var handlerMock = CreateMockReleaseHandler("v2.0.0", "Release 2.0.0", "https://github.com/test/releases/tag/v2.0.0");
+        var handlerMock =
+            CreateMockReleaseHandler("v2.0.0", "Release 2.0.0", "https://github.com/test/releases/tag/v2.0.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         var result = await service.CheckForUpdateAsync();
@@ -97,7 +100,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_WhenLatestVersionIsSame_ShouldReturnUpdateAvailableFalse()
     {
-        var handlerMock = CreateMockReleaseHandler("v1.0.0", "Release 1.0.0", "https://github.com/test/releases/tag/v1.0.0");
+        var handlerMock =
+            CreateMockReleaseHandler("v1.0.0", "Release 1.0.0", "https://github.com/test/releases/tag/v1.0.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         var result = await service.CheckForUpdateAsync();
@@ -110,7 +114,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_WhenLatestVersionIsOlder_ShouldReturnUpdateAvailableFalse()
     {
-        var handlerMock = CreateMockReleaseHandler("v0.9.0", "Release 0.9.0", "https://github.com/test/releases/tag/v0.9.0");
+        var handlerMock =
+            CreateMockReleaseHandler("v0.9.0", "Release 0.9.0", "https://github.com/test/releases/tag/v0.9.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         var result = await service.CheckForUpdateAsync();
@@ -123,7 +128,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_WithVersionTagWithoutPrefix_ShouldCompareCorrectly()
     {
-        var handlerMock = CreateMockReleaseHandler("2.0.0", "Release 2.0.0", "https://github.com/test/releases/tag/2.0.0");
+        var handlerMock =
+            CreateMockReleaseHandler("2.0.0", "Release 2.0.0", "https://github.com/test/releases/tag/2.0.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         var result = await service.CheckForUpdateAsync();
@@ -136,7 +142,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_WithVersionTagCapitalV_ShouldCompareCorrectly()
     {
-        var handlerMock = CreateMockReleaseHandler("V2.0.0", "Release 2.0.0", "https://github.com/test/releases/tag/V2.0.0");
+        var handlerMock =
+            CreateMockReleaseHandler("V2.0.0", "Release 2.0.0", "https://github.com/test/releases/tag/V2.0.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         var result = await service.CheckForUpdateAsync();
@@ -149,7 +156,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_WithPatchVersionBump_ShouldDetectUpdate()
     {
-        var handlerMock = CreateMockReleaseHandler("v1.0.1", "Release 1.0.1", "https://github.com/test/releases/tag/v1.0.1");
+        var handlerMock =
+            CreateMockReleaseHandler("v1.0.1", "Release 1.0.1", "https://github.com/test/releases/tag/v1.0.1");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         var result = await service.CheckForUpdateAsync();
@@ -162,7 +170,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_WithMinorVersionBump_ShouldDetectUpdate()
     {
-        var handlerMock = CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
+        var handlerMock =
+            CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         var result = await service.CheckForUpdateAsync();
@@ -175,7 +184,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_WithMajorVersionBump_ShouldDetectUpdate()
     {
-        var handlerMock = CreateMockReleaseHandler("v3.0.0", "Release 3.0.0", "https://github.com/test/releases/tag/v3.0.0");
+        var handlerMock =
+            CreateMockReleaseHandler("v3.0.0", "Release 3.0.0", "https://github.com/test/releases/tag/v3.0.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         var result = await service.CheckForUpdateAsync();
@@ -201,11 +211,13 @@ public class UpdateServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("{\"tag_name\":null,\"name\":\"Release\",\"html_url\":\"https://github.com/test\"}",
+                Content = new StringContent(
+                    "{\"tag_name\":null,\"name\":\"Release\",\"html_url\":\"https://github.com/test\"}",
                     System.Text.Encoding.UTF8, "application/json")
             });
         var service = CreateServiceWithMockHandler(handlerMock.Object);
@@ -220,7 +232,8 @@ public class UpdateServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
@@ -236,7 +249,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_WithInvalidVersionFormat_ShouldReturnNull()
     {
-        var handlerMock = CreateMockReleaseHandler("not-a-version", "Release", "https://github.com/test/releases/tag/not-a-version");
+        var handlerMock = CreateMockReleaseHandler("not-a-version", "Release",
+            "https://github.com/test/releases/tag/not-a-version");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         var result = await service.CheckForUpdateAsync();
@@ -247,7 +261,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_ShouldSetUserAgentHeader()
     {
-        var handlerMock = CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
+        var handlerMock =
+            CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         await service.CheckForUpdateAsync();
@@ -257,7 +272,8 @@ public class UpdateServiceTests
         Assert.NotNull(httpClient);
         Assert.Contains(
             httpClient.DefaultRequestHeaders.UserAgent,
-            static ua => string.Equals(ua.Product?.Name, "CreateBatchFilesForXbox360XBLAGames", StringComparison.OrdinalIgnoreCase));
+            static ua => string.Equals(ua.Product?.Name, "CreateBatchFilesForXbox360XBLAGames",
+                StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -277,7 +293,8 @@ public class UpdateServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new OperationCanceledException());
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
@@ -291,7 +308,8 @@ public class UpdateServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Network error"));
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
@@ -327,7 +345,8 @@ public class UpdateServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new HttpRequestException("Connection refused"));
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
@@ -341,7 +360,8 @@ public class UpdateServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new TaskCanceledException());
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
@@ -385,7 +405,8 @@ public class UpdateServiceTests
     public async Task CancelAll_ShouldAllowSubsequentRequests()
     {
         ResetGlobalCts();
-        var handlerMock = CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
+        var handlerMock =
+            CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         UpdateService.CancelAll();
@@ -405,7 +426,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_ShouldSendWithCancellationToken()
     {
-        var handlerMock = CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
+        var handlerMock =
+            CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
         var service = CreateServiceWithMockHandler(handlerMock.Object);
 
         await service.CheckForUpdateAsync();
@@ -420,7 +442,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_WithCurrentVersionNull_ShouldReturnNull()
     {
-        var handlerMock = CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
+        var handlerMock =
+            CreateMockReleaseHandler("v1.1.0", "Release 1.1.0", "https://github.com/test/releases/tag/v1.1.0");
         SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(30) });
         var service = new UpdateService(TestRepoOwner, TestRepoName, "invalid");
 
@@ -447,7 +470,8 @@ public class UpdateServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
@@ -549,7 +573,8 @@ public class UpdateServiceTests
     [Fact]
     public async Task CheckForUpdateAsync_WithFourPartVersion_ShouldCompareCorrectly()
     {
-        var handlerMock = CreateMockReleaseHandler("v1.0.0.1", "Release 1.0.0.1", "https://github.com/test/releases/tag/v1.0.0.1");
+        var handlerMock = CreateMockReleaseHandler("v1.0.0.1", "Release 1.0.0.1",
+            "https://github.com/test/releases/tag/v1.0.0.1");
         SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(30) });
         var service = new UpdateService(TestRepoOwner, TestRepoName, "1.0.0.0");
 
@@ -578,7 +603,8 @@ public class UpdateServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
@@ -641,7 +667,8 @@ public class UpdateServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = statusCode,

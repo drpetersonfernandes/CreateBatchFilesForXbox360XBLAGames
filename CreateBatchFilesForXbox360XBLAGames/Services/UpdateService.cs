@@ -40,11 +40,21 @@ public class UpdateService
             _globalCts = new CancellationTokenSource();
         }
 
-        try { oldCts.Cancel(); }
-        catch (ObjectDisposedException) { }
+        try
+        {
+            oldCts.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
 
-        try { oldCts.Dispose(); }
-        catch (ObjectDisposedException) { }
+        try
+        {
+            oldCts.Dispose();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 
     public async Task<UpdateCheckResult?> CheckForUpdateAsync()

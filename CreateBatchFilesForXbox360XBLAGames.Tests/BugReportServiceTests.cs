@@ -46,7 +46,8 @@ public class BugReportServiceTests
         handlerMock.Protected().Verify(
             "SendAsync",
             Times.Once(),
-            ItExpr.Is<HttpRequestMessage>(static m => m.RequestUri != null && m.RequestUri.ToString().Contains("send-bug-report")),
+            ItExpr.Is<HttpRequestMessage>(static m =>
+                m.RequestUri != null && m.RequestUri.ToString().Contains("send-bug-report")),
             ItExpr.IsAny<CancellationToken>());
     }
 
@@ -97,7 +98,8 @@ public class BugReportServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new OperationCanceledException());
         SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
@@ -109,7 +111,8 @@ public class BugReportServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new InvalidOperationException("Network error"));
         SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
@@ -311,7 +314,8 @@ public class BugReportServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new HttpRequestException("Connection refused"));
         SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
@@ -323,7 +327,8 @@ public class BugReportServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ThrowsAsync(new TaskCanceledException());
         SetStaticHttpClient(new HttpClient(handlerMock.Object) { Timeout = TimeSpan.FromSeconds(5) });
 
@@ -349,7 +354,8 @@ public class BugReportServiceTests
     {
         var handlerMock = new Mock<HttpMessageHandler>();
         handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+            .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = statusCode,

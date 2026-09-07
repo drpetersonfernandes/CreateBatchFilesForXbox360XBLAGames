@@ -72,7 +72,8 @@ public class AboutWindowTests
     [Fact]
     public void GetApplicationVersion_ShouldBeStatic()
     {
-        var method = typeof(AboutWindow).GetMethod("GetApplicationVersion", BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+        var method = typeof(AboutWindow).GetMethod("GetApplicationVersion",
+            BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
         Assert.NotNull(method);
         Assert.True(method.IsStatic);
     }

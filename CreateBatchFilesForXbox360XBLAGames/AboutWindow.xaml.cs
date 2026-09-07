@@ -77,7 +77,8 @@ public partial class AboutWindow
         catch (Exception ex)
         {
             Log.Error(ex, "Error opening URL: {Url}", e.Uri.AbsoluteUri);
-            MessageBox.Show(this, $"Unable to open link: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(this, $"Unable to open link: {ex.Message}", "Error", MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
         finally
         {

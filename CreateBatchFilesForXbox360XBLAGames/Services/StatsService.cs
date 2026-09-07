@@ -37,11 +37,21 @@ public class StatsService
             _globalCts = new CancellationTokenSource();
         }
 
-        try { oldCts.Cancel(); }
-        catch (ObjectDisposedException) { }
+        try
+        {
+            oldCts.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
 
-        try { oldCts.Dispose(); }
-        catch (ObjectDisposedException) { }
+        try
+        {
+            oldCts.Dispose();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 
     public async Task SendStatsAsync()
