@@ -18,7 +18,7 @@ public class UpdateService
     }
 
     private static CancellationTokenSource _globalCts = new();
-    private static readonly object CtsLock = new();
+    private static readonly Lock CtsLock = new();
 
     private readonly string _repoOwner;
     private readonly string _repoName;

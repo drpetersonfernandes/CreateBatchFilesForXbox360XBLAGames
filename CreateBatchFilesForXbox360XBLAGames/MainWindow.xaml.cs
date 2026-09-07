@@ -41,7 +41,7 @@ public partial class MainWindow
 
     private void UpdateStatusBarMessage(string message)
     {
-        Application.Current.Dispatcher.InvokeAsync(() =>
+        _ = Application.Current.Dispatcher.InvokeAsync(() =>
         {
             StatusBarMessage.Text = message;
         });
@@ -107,8 +107,30 @@ public partial class MainWindow
                 var subDirectories = Directory.GetDirectories(rootFolder);
                 if (subDirectories.Length != 0) return;
 
-                Log.Warning("The selected game folder has no subdirectories: {Path}", rootFolder);
-                ShowError("The selected folder has no subdirectories. Please select a folder that contains your Xbox 360 XBLA game folders.");
+                // No subdirectories: this can be a single-game folder (e.g. user selected
+                // ...\584108AA\000D0000 or ...\Trials Fusion\58411401\00000002 directly)
+                // or an empty/invalid folder. Distinguish the two so single games work
+                // instead of failing with "Processed 0 directories".
+                try
+                {
+                    var filesInFolder = Directory.GetFiles(rootFolder, "*", SearchOption.AllDirectories);
+                    if (filesInFolder.Length > 0)
+                    {
+                        Log.Information("Single game folder detected: {Path}. A single batch file will be created.", rootFolder);
+                        UpdateStatusBarMessage("Single game folder selected.");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Could not enumerate files in selected folder: {Path}", rootFolder);
+                }
+
+                Log.Warning("The selected game folder has no subdirectories and no game files: {Path}", rootFolder);
+                ShowError("The selected folder contains no game subfolders and no game files.\n\n" +
+                          "Please select either:\n" +
+                          "- a folder containing your Xbox 360 XBLA game folders (each game in its own subfolder), or\n" +
+                          "- a single game folder containing the game files.");
             }
         }
         catch (Exception ex)
@@ -126,7 +148,8 @@ public partial class MainWindow
 
             if (string.IsNullOrEmpty(xeniaExePath))
             {
-                Log.Error("No Xenia executable selected");
+                // User-correctable validation: Warning (not Error) so it does not trigger a bug report.
+                Log.Warning("No Xenia executable selected");
                 ShowError("Please select the Xenia executable file (xenia.exe).");
                 UpdateStatusBarMessage("Error: Xenia executable not selected.");
                 return;
@@ -134,7 +157,7 @@ public partial class MainWindow
 
             if (!File.Exists(xeniaExePath))
             {
-                Log.Error("Xenia executable not found at path: {Path}", xeniaExePath);
+                Log.Warning("Xenia executable not found at path: {Path}", xeniaExePath);
                 ShowError("The selected Xenia executable file does not exist.");
                 UpdateStatusBarMessage("Error: Xenia executable not found.");
                 return;
@@ -142,7 +165,7 @@ public partial class MainWindow
 
             if (string.IsNullOrEmpty(rootFolder))
             {
-                Log.Error("No game folder selected");
+                Log.Warning("No game folder selected");
                 ShowError("Please select the root folder containing your Xbox 360 XBLA game folders.");
                 UpdateStatusBarMessage("Error: Game folder not selected.");
                 return;
@@ -150,7 +173,7 @@ public partial class MainWindow
 
             if (!Directory.Exists(rootFolder))
             {
-                Log.Error("Game folder not found at path: {Path}", rootFolder);
+                Log.Warning("Game folder not found at path: {Path}", rootFolder);
                 ShowError("The selected game folder does not exist.");
                 UpdateStatusBarMessage("Error: Game folder not found.");
                 return;
@@ -160,7 +183,7 @@ public partial class MainWindow
             {
                 const string errorMessage = "No write permission for the selected folder. " +
                                             "Please try running the application as administrator or select a folder where you have write permission.";
-                Log.Error(errorMessage);
+                Log.Warning(errorMessage);
                 ShowError(errorMessage);
                 UpdateStatusBarMessage("Error: Access denied.");
                 return;
@@ -248,50 +271,80 @@ public partial class MainWindow
             Log.Information("Starting batch file creation process...");
             UpdateStatusBarMessage("Creating batch files...");
 
-            foreach (var gameDirectory in gameDirectories)
+            // Single-game mode: user selected a leaf game folder directly
+            // (e.g. ...\584108AA\000D0000 or ...\Trials Fusion\58411401\00000002).
+            // Previously this reported "Processed 0 directories but created 0 batch files"
+            // as a bug. Now treat the selected folder itself as the game.
+            if (gameDirectories.Length == 0)
             {
-                directoriesProcessed++;
-                try
+                var singleGameFolderName = Path.GetFileName(rootFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                if (string.IsNullOrEmpty(singleGameFolderName))
                 {
-                    var gameFolderName = Path.GetFileName(gameDirectory);
-                    var batchFilePath = Path.Combine(rootFolder, gameFolderName + ".bat");
+                    singleGameFolderName = rootFolder;
+                }
 
-                    var gameFilePath = await FindGameFileAsync(gameDirectory);
-
-                    if (string.IsNullOrEmpty(gameFilePath))
+                directoriesProcessed = 1;
+                var gameFilePath = await FindGameFileAsync(rootFolder);
+                if (string.IsNullOrEmpty(gameFilePath))
+                {
+                    Log.Warning("No game files found in selected folder {Folder}. Skipping...", singleGameFolderName);
+                    directoriesSkipped = 1;
+                }
+                else
+                {
+                    var outputDirectory = GetSingleGameOutputDirectory(rootFolder);
+                    if (!CheckWritePermission(outputDirectory))
                     {
-                        Log.Warning("No game file found in {Folder}. Skipping...", gameFolderName);
-                        directoriesSkipped++;
-                        continue;
+                        Log.Warning("No write permission for output folder: {Path}", outputDirectory);
+                        ShowError("No write permission for the output folder. Please try running the application as administrator or select a folder where you have write permission.");
+                        UpdateStatusBarMessage("Error: Access denied.");
+                        return;
                     }
 
+                    var batchFilePath = Path.Combine(outputDirectory, singleGameFolderName + ".bat");
+                    if (await TryCreateBatchFileAsync(batchFilePath, gameFilePath, xeniaExePath, singleGameFolderName))
+                    {
+                        filesCreated = 1;
+                    }
+                    else
+                    {
+                        directoriesSkipped = 1;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var gameDirectory in gameDirectories)
+                {
+                    directoriesProcessed++;
                     try
                     {
-                        await using (StreamWriter sw = new(batchFilePath))
+                        var gameFolderName = Path.GetFileName(gameDirectory);
+                        var batchFilePath = Path.Combine(rootFolder, gameFolderName + ".bat");
+
+                        var gameFilePath = await FindGameFileAsync(gameDirectory);
+
+                        if (string.IsNullOrEmpty(gameFilePath))
                         {
-                            await sw.WriteLineAsync("@echo off");
-                            await sw.WriteLineAsync($"cd /d \"{Path.GetDirectoryName(xeniaExePath)}\"");
-                            await sw.WriteLineAsync($"start \"\" \"{Path.GetFileName(xeniaExePath)}\" \"{gameFilePath}\"");
+                            Log.Warning("No game file found in {Folder}. Skipping...", gameFolderName);
+                            directoriesSkipped++;
+                            continue;
                         }
 
-                        Log.Information("Batch file created: {Path}", batchFilePath);
-                        filesCreated++;
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        Log.Warning(ex, "Permission denied creating batch file for {Folder}", gameFolderName);
-                        directoriesSkipped++;
+                        if (await TryCreateBatchFileAsync(batchFilePath, gameFilePath, xeniaExePath, gameFolderName))
+                        {
+                            filesCreated++;
+                        }
+                        else
+                        {
+                            directoriesSkipped++;
+                        }
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(ex, "Error creating batch file for {Folder}", gameFolderName);
+                        Log.Error(ex, "Error processing directory {Folder}", Path.GetFileName(gameDirectory));
                         directoriesSkipped++;
                     }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Error processing directory {Folder}", Path.GetFileName(gameDirectory));
-                    directoriesSkipped++;
                 }
             }
 
@@ -303,15 +356,19 @@ public partial class MainWindow
             if (filesCreated > 0)
             {
                 Log.Information("{Count} batch files have been successfully created", filesCreated);
-                Log.Information("They are located in the root folder of your Xbox 360 XBLA games");
+                Log.Information("They are located in the output folder");
 
                 ShowMessageBox($"{filesCreated} batch files have been successfully created.\n\n" +
-                               "They are located in the root folder of your Xbox 360 XBLA games.",
+                               "They are located in the output folder.",
                     "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
-                const string errorMessage = "No valid game folders found. No batch files were created.";
+                // User-correctable: Warning (not Error) so it does not trigger a bug report.
+                const string errorMessage = "No valid game folders found. No batch files were created.\n\n" +
+                                            "Please select either:\n" +
+                                            "- a folder containing your Xbox 360 XBLA game folders (each game in its own subfolder), or\n" +
+                                            "- a single game folder containing the game files.";
                 Log.Warning(errorMessage);
                 ShowError(errorMessage);
             }
@@ -321,6 +378,50 @@ public partial class MainWindow
             Log.Error(ex, "Error scanning game folders");
             UpdateStatusBarMessage("Error scanning game folders.");
             throw;
+        }
+    }
+
+    private static string GetSingleGameOutputDirectory(string singleGameFolder)
+    {
+        try
+        {
+            var parent = Directory.GetParent(singleGameFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            if (parent != null && Directory.Exists(parent.FullName))
+            {
+                return parent.FullName;
+            }
+        }
+        catch
+        {
+            // Ignore and fall back to the folder itself.
+        }
+
+        return singleGameFolder;
+    }
+
+    private static async Task<bool> TryCreateBatchFileAsync(string batchFilePath, string gameFilePath, string xeniaExePath, string gameFolderName)
+    {
+        try
+        {
+            await using (StreamWriter sw = new(batchFilePath))
+            {
+                await sw.WriteLineAsync("@echo off");
+                await sw.WriteLineAsync($"cd /d \"{Path.GetDirectoryName(xeniaExePath)}\"");
+                await sw.WriteLineAsync($"start \"\" \"{Path.GetFileName(xeniaExePath)}\" \"{gameFilePath}\"");
+            }
+
+            Log.Information("Batch file created: {Path}", batchFilePath);
+            return true;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Log.Warning(ex, "Permission denied creating batch file for {Folder}", gameFolderName);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error creating batch file for {Folder}", gameFolderName);
+            return false;
         }
     }
 
@@ -334,7 +435,12 @@ public partial class MainWindow
                 if (directories.Length > 0)
                 {
                     var files = Directory.GetFiles(directories[0]);
-                    return Task.FromResult(files.Length > 0 ? files[0] : null);
+                    if (files.Length > 0)
+                    {
+                        return Task.FromResult(files.Length > 0 ? files[0] : null);
+                    }
+                    // 000D0000 exists but is empty: fall through to recursive search
+                    // instead of failing immediately.
                 }
 
                 var allFiles = Directory.GetFiles(gameDirectory, "*", SearchOption.AllDirectories);
@@ -365,7 +471,8 @@ public partial class MainWindow
                     directoryStructure.AppendLine(CultureInfo.InvariantCulture, $"Error accessing directory structure: {ex.Message}");
                 }
 
-                Log.Error("No files found for game: {Folder}\n{Structure}",
+                // User data issue (empty folder), not an application bug: Warning so no bug report is sent.
+                Log.Warning("No files found for game: {Folder}\n{Structure}",
                     Path.GetFileName(gameDirectory), directoryStructure.ToString());
             }
             catch (Exception ex)

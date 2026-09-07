@@ -6,7 +6,7 @@ internal static class TaskExtensions
 {
     public static void FireAndForget(this Task task)
     {
-        task.ContinueWith(static t =>
+        _ = task.ContinueWith(static t =>
         {
             var ex = t.Exception?.Flatten();
             if (ex != null)

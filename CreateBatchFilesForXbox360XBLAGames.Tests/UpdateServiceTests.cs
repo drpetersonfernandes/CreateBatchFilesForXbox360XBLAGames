@@ -257,7 +257,7 @@ public class UpdateServiceTests
         Assert.NotNull(httpClient);
         Assert.Contains(
             httpClient.DefaultRequestHeaders.UserAgent,
-            static ua => ua.Product?.Name == "CreateBatchFilesForXbox360XBLAGames");
+            static ua => string.Equals(ua.Product?.Name, "CreateBatchFilesForXbox360XBLAGames", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

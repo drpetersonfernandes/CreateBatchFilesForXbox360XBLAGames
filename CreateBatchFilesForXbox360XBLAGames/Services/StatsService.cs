@@ -13,7 +13,7 @@ public class StatsService
     };
 
     private static CancellationTokenSource _globalCts = new();
-    private static readonly object CtsLock = new();
+    private static readonly Lock CtsLock = new();
 
     private readonly string _apiUrl;
     private readonly string _apiKey;

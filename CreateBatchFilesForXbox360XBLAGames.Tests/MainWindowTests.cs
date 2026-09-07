@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace CreateBatchFilesForXbox360XBLAGames.Tests;
@@ -133,7 +132,7 @@ public class MainWindowTests : IDisposable
     [Fact]
     public void CheckWritePermission_ShouldNotThrowForNetworkPath()
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return;
+        if (!OperatingSystem.IsWindows()) return;
 
         _ = MainWindow.CheckWritePermission(@"\\localhost\C$\Windows");
         // Don't assert result - just verify no exception
@@ -578,7 +577,7 @@ public class MainWindowTests : IDisposable
         Directory.CreateDirectory(gameDir);
         var hiddenFile = CreateTempFile(gameDir, "game.xex", "content");
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (OperatingSystem.IsWindows())
         {
             File.SetAttributes(hiddenFile, File.GetAttributes(hiddenFile) | FileAttributes.Hidden);
         }
